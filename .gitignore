@@ -1,0 +1,21 @@
+# build output
+contracts/target/
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# secrets and local signer material: never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+**/credentials/
+.near-credentials/
+neardev/
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/

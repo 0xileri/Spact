@@ -1,0 +1,55 @@
+# Threat model
+
+Unaudited hackathon prototype. This file maps each invariant from AGENTS.md section 3 to where it is enforced and which test shows it. An invariant without a passing test is listed as **not demonstrated**.
+
+## Invariants
+
+| ID | Invariant | Enforcement point | Evidence | State |
+|---|---|---|---|---|
+| I1 | Funds sit in the vault; the agent has no vault key | Vault is its own account; the agent signs only with its own account | sandbox `t18_agent_cannot_move_funds_outside_policy` | demonstrated (sandbox) |
+| I2 | Only the owner changes policy, pauses or approves | `assert_owner`: predecessor == owner and exactly 1 yocto attached | unit `t05_*`; sandbox `t18_*`, `s2_*` | demonstrated |
+| I3 | Payment terms are immutable and bound to the approval | No mutation method exists; `approve_request` recomputes the hash and requires a match | unit `t02_*`; sandbox `s2_*` (wrong hash) | demonstrated |
+| I4 | No replay | Unique id per vault; execution requires APPROVED; dispatch moves the request out of it | unit `t03_*`; sandbox `s2_*` | demonstrated |
+| I5 | Policy enforced on-chain | `check_new_request` and the `execute_request` rechecks | unit `t01`, `t11`, `t12`, pause tests | demonstrated |
+| I6 | Budget counts executed + in-flight | `dispatch` reserves before the promise; private callback settles once | unit `t04`, `t08`, `t10`, `t17`; sandbox `t04_parallel_*`, `t08_*` | demonstrated |
+| I7 | A human approves the exact request with a wallet | 1 yocto rules out function-call keys; hash binding; single use; expiry | sandbox `s2_*` (`DepositWithFunctionCall`); unit `t07_*` | contract side demonstrated; **approval UI not built** |
+| I8 | Cross-chain honesty | No cross-chain route exists (`Route::NearDirect` only) | n/a | P1 not started |
+| I9 | Refund honesty | No cross-chain route exists | n/a | P1 not started |
+| I10 | Fail closed | Upfront gas check; every failure path panics or returns BLOCKED before state changes | unit `request_without_enough_gas_*`; sandbox `t08_*` | demonstrated for the paths that exist |
+| I11 | Auditability | NEP-297 events for every transition; reason codes on requests | unit `t01_*` checks the blocked event | events emitted; **no indexer yet** |
+| I12 | No silent admin bypass | `owner_withdraw` is owner-only, 1 yocto, emits an event | unit `t05_agent_cannot_withdraw`, `owner_withdraw_*`; sandbox `pause_blocks_*` | demonstrated |
+
+## Security Lab coverage (AGENTS.md section 10)
+
+| Test | Case | Unit | Sandbox |
+|---|---|---|---|
+| T01 | over hard cap | yes | yes |
+| T02 | change recipient or amount after approval | yes | wrong hash: yes |
+| T03 | replay | yes | yes |
+| T04 | parallel split against the daily budget | sequential | parallel txs: yes |
+| T05 | agent calls owner methods | yes | yes |
+| T06 | forged Telegram callback | no Telegram yet | no |
+| T07 | expired approval | yes | no |
+| T08 | transfer fails / recipient not registered | yes | yes |
+| T09 | pause before execution | yes | pause blocks new requests: yes |
+| T10 | UTC midnight | yes (mocked clock) | no (sandbox clock not controllable) |
+| T11 | bad decimals, zero, overflow | yes + TS `parseUnits` | no |
+| T12 | unlisted token or recipient | yes | recipient: yes |
+| T13 | refund reported but not received | P1 | P1 |
+| T14 | quote deposit address differs from payee | P1 | P1 |
+| T15 | wrong vault, network or policy version | yes | no |
+| T16 | direct call to the private callback | cannot be unit tested | yes |
+| T17 | retries never transfer twice | repeated callbacks: yes | no |
+| T18 | prompt-injected agent | n/a | agent key cannot bypass policy: yes (no LLM or MCP yet) |
+
+## Known limitations and trust assumptions
+
+- **Vault account key.** Whoever holds a full-access key to the vault account can redeploy the code and bypass every rule. For the demo the owner must hold it offline. Deleting the keys after deployment would lock the code permanently. Not decided (open question in DECISIONS.md).
+- **Owner wallet compromise** defeats everything. Out of scope, as AGENTS.md says.
+- **Allowlisted token contracts are trusted** to implement `ft_transfer` honestly and synchronously. A malicious token could report success without moving funds.
+- **Stuck reservation.** If the callback itself fails (it has 10 Tgas of static gas), the request stays TRANSFER_PENDING and its budget stays reserved. That fails closed, but there is no reconciliation method yet.
+- **Storage is paid by the vault.** Agents cannot attach deposits with function-call keys, so the vault pays storage for every stored request (bytes per request not measured yet). This is bounded by `max_requests_per_day` and `max_open_approvals`, but it never shrinks; there is no pruning yet.
+- **Open approvals survive policy changes** until they are rejected or expire, and they count toward `max_open_approvals`.
+- **The daily window is the UTC calendar day.** An agent can spend the full budget just before midnight and again just after. This is not a rolling 24-hour limit.
+- **Request reason text** is chosen by the agent and shown to the owner. It is covered by the hash, but it can still be used for social engineering. The UI must label it as agent-supplied.
+- **Blocked requests are not stored.** They exist only as events and return values.
