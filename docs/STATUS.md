@@ -6,7 +6,7 @@ Last updated 2026-10-23 (UTC). Network mode so far: **local sandbox only**. Noth
 
 | Step | State |
 |---|---|
-| 1. Verify rules and SDKs, write INTEGRATIONS.md | done for SDKs; **HACKATHON.md not fetched** (host blocked) |
+| 1. Verify rules and SDKs, write INTEGRATIONS.md | done; `HACKATHON.md` added from the owner's copy (live version not fetched) |
 | 2. ARCHITECTURE, THREAT_MODEL, DECISIONS, STATUS | done |
 | 3. Monorepo with lint/typecheck/test/build baseline | done (pnpm + cargo workspaces, CI workflow) |
 | 4. Vault with owner/agent auth and policy validation, negative tests | done |
@@ -36,6 +36,8 @@ Last updated 2026-10-23 (UTC). Network mode so far: **local sandbox only**. Noth
 | `cargo fmt --all --check` | clean |
 | `pnpm lint && pnpm typecheck && pnpm test && pnpm build` | clean; 10 tests passed |
 
+GitHub Actions `ci` run 1 (commit `8b91f83`) passed both jobs. The contracts job ran all 8 sandbox tests on the hosted runner without the rlimit shim.
+
 Measured: an auto payment (request + ft_transfer + callback) burnt about 7 Tgas in sandbox.
 
 ## Unresolved risks
@@ -44,8 +46,9 @@ Measured: an auto payment (request + ft_transfer + callback) burnt about 7 Tgas 
 - The vault account's full-access key can redeploy the code (THREAT_MODEL).
 - No reconciliation path for a stuck TRANSFER_PENDING; no storage pruning.
 - Testnet/mainnet protocol support for the rustc 1.97 wasm output is unverified.
-- The CI workflow has not run on GitHub yet.
 
 ## Next smallest task
 
 Deploy the vault and mock token to NEAR testnet from a machine that can reach testnet RPC, and record the contract ids, code hash and one settled auto-payment transaction here. Then build the approval page: wallet connect, display terms, compute the hash with `@spendpact/shared`, sign `approve_request` + `execute_request`.
+
+After that, give the agent a function-call key on its own account scoped to the vault's `request_direct_payment` and `execute_request`, and add a sandbox test that the key cannot call anything else. The security track names function-call keys as a hint, and this makes the agent's key useless outside SpendPact.

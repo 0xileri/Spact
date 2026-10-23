@@ -4,7 +4,9 @@ Short ADRs. Each records the date, the choice, and why.
 
 ## ADR-000: Implementation started before the build window (2026-10-23)
 
-The owner told the coding agent to start building on 2026-10-23, before the official window (2026-11-01 to 2026-11-14). The commit history shows this. AGENTS.md says not to present pre-event code as built during the event, and to verify eligibility before submitting. **Open:** check the official `HACKATHON.md` and rules, and disclose the start date in the submission if required.
+The owner told the coding agent to start building on 2026-10-23, before the official window (2026-11-01 to 2026-11-14). The commit history shows this. AGENTS.md says not to present pre-event code as built during the event, and to verify eligibility before submitting.
+
+`HACKATHON.md` (owner copy of 2026-10-23) gives the start as 2026-11-01 but has no explicit rule about code written earlier. The announcement says to build during the hackathon. **Open:** ask the organizers (NEAR Discord) whether pre-start code is allowed, and disclose the start date in the submission regardless.
 
 ## ADR-001: P0 supports direct NEP-141 payments on NEAR only (2026-10-23)
 
@@ -52,9 +54,14 @@ The owner's client hashes the terms it displays and passes that hash to `approve
 
 `typescript-eslint` 8.71.1 supports `typescript <6.1.0`. Move to 7.x when it is supported.
 
+## ADR-012: Organizer rules on agent actions (2026-10-23)
+
+`HACKATHON.md` requires explicit human confirmation before the agent submits, posts on X, makes the repo public, pushes, signs transactions, spends tokens or deploys to mainnet. This matches AGENTS.md. The owner approved pushes to the open PR branch while the agent watches it; everything else on that list still needs a fresh yes.
+
 ## Open questions (from AGENTS.md section 17)
 
-- [ ] Official `HACKATHON.md`: rules and eligibility of pre-window code (ADR-000).
+- [x] Official `HACKATHON.md`: added at the repo root (owner copy, 2026-10-23).
+- [ ] Eligibility of pre-window code (ADR-000).
 - [ ] Demo stablecoin on testnet/mainnet: token id, decimals, storage behavior, 1Click support.
 - [ ] Testnet/mainnet protocol version >= 84 for rustc 1.97 output (see INTEGRATIONS.md).
 - [ ] Vault account key policy: keep offline, delete after deploy, or a controlled upgrade path.

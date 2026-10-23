@@ -12,7 +12,7 @@ The first build session ran in a cloud container with a restricted network allow
 | `registry.npmjs.org` | yes | npm versions and peer dependencies checked |
 | `s3-us-west-1.amazonaws.com` (`build.nearprotocol.com`) | yes | NEAR sandbox node binary downloaded |
 | `raw.githubusercontent.com` | yes | GitHub Action `action.yml` files checked |
-| `nearhackathon.com` | **no** | `HACKATHON.md` not fetched. Open question below. |
+| `nearhackathon.com` | **no** | The owner pasted `HACKATHON.md` into the session; it is at the repo root with a provenance note. The live version was not fetched. |
 | `docs.near.org`, `docs.rs` | **no** | SDK behavior verified from crate source instead |
 | `docs.near-intents.org`, `1click.chaindefuser.com` | **no** | 1Click not integrated or re-verified (P1) |
 | `rpc.testnet.near.org` | **no** | No testnet deployment from this environment |
@@ -76,4 +76,9 @@ expires_at_ns=1762000000000000000 policy_version=1
 | NEAR Intents / 1Click | not started (P1) | AGENTS.md section 8 lists endpoints the owner researched on 2026-10-23. Not re-verified here because the hosts were blocked. AGENTS.md says there is no testnet version. |
 | NEAR wallet connector | not started | needed for the owner approval page |
 | Telegram Bot API | not started | |
-| `HACKATHON.md` | not fetched | the owner must download it to the repo root |
+
+## Hackathon submission (from `HACKATHON.md`, owner copy of 2026-10-23)
+
+- Submissions are accepted only from 2026-11-01T00:00:00Z to 2026-11-14T23:59:00Z, through `POST https://nearhackathon.com/api/applications` or the form. Outside that window the API returns 403.
+- One attempt per team, no edits. The agent prints the full payload and sends only after the human confirms. The payload is never committed (it contains personal data).
+- Track ids that fit SpendPact: `security` (primary, hints: agent security, function-call keys, TEE attestation) and `agents`. The human decides.
