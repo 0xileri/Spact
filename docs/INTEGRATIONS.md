@@ -125,6 +125,15 @@ near-api-js 7.2.0: `Account.signAndSendTransaction` waits for `EXECUTED_OPTIMIST
 
 Not verified: real delivery, whether Telegram rejects URL buttons that point at `localhost` (the notifier avoids them), and @BotFather token issuance. Tests use the named mock in `apps/notifier/test/sandbox/mock-telegram.ts`.
 
+## Test-runner output for the Security Lab (checked 2026-10-24)
+
+Read from the installed sources, and exercised by `scripts/security-report.sh`:
+
+- **libtest (cargo test):** plain text. The report reads `Running ... (target/debug/deps/<binary>-<hash>)` lines and `test <name>[ - should panic] ... ok|FAILED|ignored` lines. Stable Rust has no JSON test output (`--format json` is unstable).
+- **vitest 5.0.3:** `--reporter=json --outputFile.json=<file>`. Each file has `assertionResults` with `ancestorTitles`, `title`, `status` and `duration` (`JsonReporter` in vitest's dist).
+- **Playwright 1.63.0:** `--reporter=list,json` with `PLAYWRIGHT_JSON_OUTPUT_FILE`. Suites nest; specs have `title` and `tests[].status` (`expected`, `unexpected`, `flaky`, `skipped`) (`JSONReporter` in `playwright/lib/runner/index.js`).
+- **GitHub Actions:** `actions/upload-artifact@v7` and `actions/download-artifact@v8` exist and run on `node24` (their `action.yml`). v8 merges artifacts with `pattern` plus `merge-multiple: true`, as in its README.
+
 ## GitHub Actions
 
 `actions/checkout@v6`, `actions/setup-node@v6`, `pnpm/action-setup@v5` and `Swatinem/rust-cache@v2` exist and run on `node24` (checked via their `action.yml` on 2026-10-23).

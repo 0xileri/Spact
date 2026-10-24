@@ -23,3 +23,7 @@ neardev/
 # browser test output
 apps/web/test-results/
 apps/web/playwright-report/
+
+# Security Lab: raw runner output and the report built from it (generated, never committed)
+reports/
+apps/web/public/security-report.json

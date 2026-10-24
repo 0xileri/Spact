@@ -23,6 +23,16 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      # unit results in machine-readable form, for the Security Lab report
+      - run: |
+          for p in shared web mcp notifier; do
+            pnpm --filter "@spact/$p" exec vitest run --reporter=json --outputFile.json="$GITHUB_WORKSPACE/reports/vitest-$p.json"
+          done
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: report-typescript
+          path: reports/
 
   contracts:
     runs-on: ubuntu-latest
@@ -38,7 +48,16 @@ jobs:
           workspaces: contracts
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
-      - run: ../scripts/test-contracts.sh
+      - run: |
+          set -o pipefail
+          mkdir -p ../reports
+          rustc --version > ../reports/rustc-version.txt
+          ../scripts/test-contracts.sh 2>&1 | tee ../reports/cargo.txt
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: report-contracts
+          path: reports/
 
   e2e:
     runs-on: ubuntu-latest
@@ -57,13 +76,49 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @spact/web exec playwright install --with-deps chromium
       # local sandbox chain + dev signer + approval page, driven by Chromium
-      - run: pnpm e2e
+      - run: pnpm e2e --reporter=list,json
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/reports/playwright.json
       # the agent's MCP server over stdio, against its own sandbox chain
-      - run: pnpm mcp:sandbox
+      - run: pnpm mcp:sandbox --reporter=default --reporter=json --outputFile.json=${{ github.workspace }}/reports/vitest-mcp-sandbox.json
       # the Telegram notifier against its own sandbox chain and a mock Bot API
-      - run: pnpm notifier:sandbox
+      - run: pnpm notifier:sandbox --reporter=default --reporter=json --outputFile.json=${{ github.workspace }}/reports/vitest-notifier-sandbox.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: report-e2e
+          path: reports/
       - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: playwright-traces
           path: apps/web/test-results/
+
+  # Builds the Security Lab report from the raw output of the jobs above, even when one failed,
+  # so failures show in it. It fails if any test the catalog names failed or did not run.
+  security-report:
+    needs: [typescript, contracts, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: report-*
+          path: reports
+          merge-multiple: true
+      - run: pnpm --filter "@spact/security-lab..." build
+      - run: node packages/security-lab/dist/cli.js reports security-report.json
+        env:
+          SPACT_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: security-report
+          path: security-report.json

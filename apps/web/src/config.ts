@@ -11,6 +11,8 @@ export interface AppConfig {
   explorerTxUrl: string | null;
   /** Explorer URL template with an `{account}` placeholder, or null when there is no explorer. */
   explorerAccountUrl: string | null;
+  /** Where the Security Lab report is served: relative to the page, or an https URL. */
+  securityReportUrl: string;
   /** Local dev signer, sandbox only. */
   devSignerUrl: string | null;
 }
@@ -82,7 +84,13 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
     throw new ConfigError("VITE_EXPLORER_ACCOUNT_URL must contain {account}");
   }
 
-  return { network, rpcUrl: rpc.toString(), vaultId: vault.data, explorerTxUrl, explorerAccountUrl, devSignerUrl };
+  const securityReportUrl = env.VITE_SECURITY_REPORT_URL || "security-report.json";
+  if (/^[a-z][a-z0-9+.-]*:/i.test(securityReportUrl)) {
+    const url = parseUrl(securityReportUrl, "VITE_SECURITY_REPORT_URL");
+    if (url.protocol !== "https:" && !isLocalHost(url)) throw new ConfigError("VITE_SECURITY_REPORT_URL must use https");
+  }
+
+  return { network, rpcUrl: rpc.toString(), vaultId: vault.data, explorerTxUrl, explorerAccountUrl, securityReportUrl, devSignerUrl };
 }
 
 export function explorerAccountLink(config: Pick<AppConfig, "explorerAccountUrl">, account: string): string | null {
