@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ConfigError, explorerAccountLink, explorerTxLink, parseConfig } from "../src/config.js";
+import { ConfigError, explorerAccountLink, explorerTxLink, parseConfig, parseSiteConfig } from "../src/config.js";
 
 const BASE = {
   VITE_NEAR_NETWORK: "testnet",
@@ -44,5 +44,23 @@ describe("parseConfig", () => {
     expect(() => parseConfig({ ...BASE, VITE_VAULT_ID: "Vault.testnet" })).toThrow(ConfigError);
     expect(() => parseConfig({ ...BASE, VITE_NEAR_RPC_URL: "http://rpc.example.org" })).toThrow(/https/);
     expect(() => parseConfig({ ...BASE, VITE_EXPLORER_TX_URL: "https://x.example/tx" })).toThrow(/\{hash\}/);
+  });
+});
+
+describe("parseSiteConfig", () => {
+  it("builds a Security Lab-only site when no vault is set", () => {
+    expect(parseSiteConfig({ ...BASE, VITE_VAULT_ID: undefined })).toMatchObject({ vaultId: null, network: "testnet", securityReportUrl: "security-report.json" });
+    expect(parseSiteConfig({ ...BASE, VITE_VAULT_ID: "" }).vaultId).toBeNull();
+    expect(parseSiteConfig(BASE).vaultId).toBe("vault.testnet");
+    // parseConfig itself still requires one
+    expect(() => parseConfig({ ...BASE, VITE_VAULT_ID: "" })).toThrow(/VITE_VAULT_ID/);
+  });
+
+  it("treats a malformed vault id as an error, not as no vault, and still checks everything else", () => {
+    expect(() => parseSiteConfig({ ...BASE, VITE_VAULT_ID: "Vault.testnet" })).toThrow(ConfigError);
+    expect(() => parseSiteConfig({ ...BASE, VITE_VAULT_ID: "", VITE_NEAR_NETWORK: "devnet" })).toThrow(ConfigError);
+    expect(() => parseSiteConfig({ ...BASE, VITE_VAULT_ID: "", VITE_NEAR_RPC_URL: "http://rpc.example.org" })).toThrow(/https/);
+    expect(() => parseSiteConfig({ ...BASE, VITE_VAULT_ID: "", VITE_SECURITY_REPORT_URL: "http://evil.example/r.json" })).toThrow(/https/);
+    expect(() => parseSiteConfig({ ...BASE, VITE_VAULT_ID: "", VITE_DEV_SIGNER_URL: "http://127.0.0.1:8788" })).toThrow(/only allowed/);
   });
 });

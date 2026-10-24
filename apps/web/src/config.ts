@@ -17,6 +17,12 @@ export interface AppConfig {
   devSignerUrl: string | null;
 }
 
+/** A build without a vault yet: only the Security Lab works. */
+export type LabOnlyConfig = Omit<AppConfig, "vaultId"> & { vaultId: null };
+
+/** What a build serves: the full site for one vault, or the Security Lab alone. */
+export type SiteConfig = AppConfig | LabOnlyConfig;
+
 export class ConfigError extends Error {}
 
 const DEFAULT_EXPLORERS: Record<NetworkId, string | null> = {
@@ -50,7 +56,7 @@ function parseUrl(value: string | undefined, name: string): URL {
   return url;
 }
 
-export function parseConfig(env: Record<string, string | undefined>): AppConfig {
+function parseCommon(env: Record<string, string | undefined>): Omit<AppConfig, "vaultId"> {
   const network = env.VITE_NEAR_NETWORK;
   if (network !== "sandbox" && network !== "testnet" && network !== "mainnet") {
     throw new ConfigError("VITE_NEAR_NETWORK must be sandbox, testnet or mainnet");
@@ -60,9 +66,6 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
   if (network !== "sandbox" && rpc.protocol !== "https:") {
     throw new ConfigError("VITE_NEAR_RPC_URL must use https outside sandbox");
   }
-
-  const vault = accountId.safeParse(env.VITE_VAULT_ID);
-  if (!vault.success) throw new ConfigError("VITE_VAULT_ID must be a NEAR account id");
 
   let devSignerUrl: string | null = null;
   if (env.VITE_DEV_SIGNER_URL) {
@@ -90,7 +93,19 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
     if (url.protocol !== "https:" && !isLocalHost(url)) throw new ConfigError("VITE_SECURITY_REPORT_URL must use https");
   }
 
-  return { network, rpcUrl: rpc.toString(), vaultId: vault.data, explorerTxUrl, explorerAccountUrl, securityReportUrl, devSignerUrl };
+  return { network, rpcUrl: rpc.toString(), explorerTxUrl, explorerAccountUrl, securityReportUrl, devSignerUrl };
+}
+
+export function parseConfig(env: Record<string, string | undefined>): AppConfig {
+  const common = parseCommon(env);
+  const vault = accountId.safeParse(env.VITE_VAULT_ID);
+  if (!vault.success) throw new ConfigError("VITE_VAULT_ID must be a NEAR account id");
+  return { ...common, vaultId: vault.data };
+}
+
+/** Like parseConfig, except that an empty VITE_VAULT_ID gives a Security Lab-only site instead of an error. */
+export function parseSiteConfig(env: Record<string, string | undefined>): SiteConfig {
+  return env.VITE_VAULT_ID ? parseConfig(env) : { ...parseCommon(env), vaultId: null };
 }
 
 export function explorerAccountLink(config: Pick<AppConfig, "explorerAccountUrl">, account: string): string | null {

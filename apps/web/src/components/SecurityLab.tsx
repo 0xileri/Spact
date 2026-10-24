@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import type { CaseStatus, Layer } from "@spact/shared";
 
-import type { AppConfig } from "../config.js";
 import { loadSecurityReport, type LabCase, type LoadResult } from "../securityLab.js";
 import { Badge, Card, Mono, Notice } from "./ui.js";
 
@@ -80,12 +79,12 @@ function CaseCard({ c }: { c: LabCase }) {
 }
 
 /** The Security Lab: AGENTS.md section 10's attacks and the test results behind each one. */
-export function SecurityLab({ config }: { config: AppConfig }) {
+export function SecurityLab({ reportUrl }: { reportUrl: string }) {
   const [result, setResult] = useState<LoadResult | null>(null);
 
   useEffect(() => {
-    void loadSecurityReport(config.securityReportUrl).then(setResult);
-  }, [config]);
+    void loadSecurityReport(reportUrl).then(setResult);
+  }, [reportUrl]);
 
   const intro = (
     <div>

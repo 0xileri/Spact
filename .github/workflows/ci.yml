@@ -122,3 +122,45 @@ jobs:
         with:
           name: security-report
           path: security-report.json
+
+  # Publishes the web app to GitHub Pages from main, with the Security Lab report built above.
+  # Runs only after every job passed. Until the repository variable VITE_VAULT_ID names a deployed
+  # vault, the site is the Security Lab alone. Pages must be enabled with source "GitHub Actions".
+  pages:
+    needs: [typescript, contracts, e2e, security-report]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/configure-pages@v6
+      - run: pnpm --filter @spact/web build
+        env:
+          VITE_NEAR_NETWORK: ${{ vars.VITE_NEAR_NETWORK || 'testnet' }}
+          VITE_NEAR_RPC_URL: ${{ vars.VITE_NEAR_RPC_URL || 'https://test.rpc.fastnear.com' }}
+          VITE_VAULT_ID: ${{ vars.VITE_VAULT_ID }}
+      - uses: actions/download-artifact@v8
+        with:
+          name: security-report
+          path: apps/web/dist
+      - run: test -s apps/web/dist/security-report.json && test -s apps/web/dist/index.html
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/web/dist
+      - id: deployment
+        uses: actions/deploy-pages@v5

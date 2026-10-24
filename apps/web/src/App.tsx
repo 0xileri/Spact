@@ -4,7 +4,7 @@ import { ApprovalPage } from "./components/ApprovalPage.js";
 import { Dashboard } from "./components/Dashboard.js";
 import { SecurityLab } from "./components/SecurityLab.js";
 import { Badge, Button, Mono, Notice } from "./components/ui.js";
-import type { AppConfig, NetworkId } from "./config.js";
+import type { NetworkId, SiteConfig } from "./config.js";
 import { createSigner } from "./signers/index.js";
 import { useSigner } from "./useSigner.js";
 
@@ -14,8 +14,24 @@ const NETWORK_BADGE: Record<NetworkId, { tone: "neutral" | "warn" | "bad"; label
   mainnet: { tone: "bad", label: "Mainnet: real funds" },
 };
 
-export function App({ config }: { config: AppConfig }) {
-  const signer = useMemo(() => createSigner(config), [config]);
+function NoVault() {
+  return (
+    <Notice tone="info" title="No vault is connected to this site yet">
+      <p>
+        The overview and the approval page read one vault contract on chain, and this site was built without one. The Security Lab works: it shows the
+        test results for the commit this site was built from.
+      </p>
+      <p className="mt-2">
+        <a href="?page=security" className="font-medium underline">
+          Open the Security Lab
+        </a>
+      </p>
+    </Notice>
+  );
+}
+
+export function App({ config }: { config: SiteConfig }) {
+  const signer = useMemo(() => (config.vaultId === null ? null : createSigner(config)), [config]);
   const wallet = useSigner(signer);
   const params = new URLSearchParams(window.location.search);
   const requestId = params.get("request");
@@ -34,10 +50,16 @@ export function App({ config }: { config: AppConfig }) {
             Spact
           </a>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            <Badge tone={badge.tone}>{badge.label}</Badge>
-            <span>
-              vault <Mono>{config.vaultId}</Mono>
-            </span>
+            {config.vaultId === null ? (
+              <Badge tone="neutral">No vault connected</Badge>
+            ) : (
+              <>
+                <Badge tone={badge.tone}>{badge.label}</Badge>
+                <span>
+                  vault <Mono>{config.vaultId}</Mono>
+                </span>
+              </>
+            )}
           </div>
           <nav className="mt-2 flex gap-4 text-sm" aria-label="Pages">
             <a href="./" className={onDashboard ? "font-semibold text-slate-900" : "text-slate-600 hover:text-slate-900"} aria-current={onDashboard ? "page" : undefined}>
@@ -53,7 +75,7 @@ export function App({ config }: { config: AppConfig }) {
           </nav>
         </div>
         <div className="flex items-center gap-2" data-testid="wallet">
-          {signer === null ? (
+          {config.vaultId === null ? null : signer === null ? (
             <span className="text-xs text-slate-500">No signer configured</span>
           ) : wallet.accountId ? (
             <>
@@ -78,14 +100,20 @@ export function App({ config }: { config: AppConfig }) {
             </Notice>
           </div>
         ) : null}
-        {linkVault !== null && linkVault !== config.vaultId ? (
+        {config.vaultId === null ? (
+          onSecurityLab ? (
+            <SecurityLab reportUrl={config.securityReportUrl} />
+          ) : (
+            <NoVault />
+          )
+        ) : linkVault !== null && linkVault !== config.vaultId ? (
           <Notice tone="bad" title="This link is for a different vault">
             <p>
               The link names <Mono>{linkVault}</Mono>, but this page only approves payments for <Mono>{config.vaultId}</Mono>. Nothing was loaded.
             </p>
           </Notice>
         ) : onSecurityLab ? (
-          <SecurityLab config={config} />
+          <SecurityLab reportUrl={config.securityReportUrl} />
         ) : requestId ? (
           <ApprovalPage config={config} requestId={requestId} signer={signer} wallet={wallet} />
         ) : (
