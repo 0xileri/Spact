@@ -60,6 +60,8 @@ jobs:
       - run: pnpm e2e
       # the agent's MCP server over stdio, against its own sandbox chain
       - run: pnpm mcp:sandbox
+      # the Telegram notifier against its own sandbox chain and a mock Bot API
+      - run: pnpm notifier:sandbox
       - uses: actions/upload-artifact@v6
         if: failure()
         with:

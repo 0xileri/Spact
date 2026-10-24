@@ -114,6 +114,17 @@ Adding the server to a host:
 
 near-api-js 7.2.0: `Account.signAndSendTransaction` waits for `EXECUTED_OPTIMISTIC` by default and accepts `waitUntil: "FINAL"`. It re-signs with a fresh nonce only after an `InvalidNonceError`, which means the first transaction was rejected. So a retry cannot run a request twice, and the vault also refuses duplicate ids.
 
+## Telegram Bot API (checked 2026-10-24)
+
+`core.telegram.org` and `api.telegram.org` were not reachable from the build environment. The facts below come from Telegram's open-source Bot API server, `tdlib/telegram-bot-api` @ `e3e9dd8` (2026-08-25), and TDLib `tdlib/td` (`tdnet/td/net/HttpReader.cpp`):
+
+- Every reply is `{"ok": true, "result": ...}` or `{"ok": false, "error_code", "description", "parameters"?}`. Flood control answers 429 with `parameters.retry_after` in seconds (`Query.cpp`, `JsonQueryError`, `set_retry_after_error`).
+- `sendMessage` reads `chat_id`, `text` (empty is an error), `parse_mode`, `entities`, `link_preview_options` (an object with `is_disabled`, replacing `disable_web_page_preview`) and `reply_markup` (`Client.cpp`). A URL button is `{"text", "url"}` in `inline_keyboard`.
+- `getUpdates` reads `offset`, `limit` (1-100), `timeout` (0-50 s) and `allowed_updates` (a JSON array of update type names, such as `"message"`).
+- Request bodies may be `application/json` (`HttpReader.cpp` parses them into arguments).
+
+Not verified: real delivery, whether Telegram rejects URL buttons that point at `localhost` (the notifier avoids them), and @BotFather token issuance. Tests use the named mock in `apps/notifier/test/sandbox/mock-telegram.ts`.
+
 ## GitHub Actions
 
 `actions/checkout@v6`, `actions/setup-node@v6`, `pnpm/action-setup@v5` and `Swatinem/rust-cache@v2` exist and run on `node24` (checked via their `action.yml` on 2026-10-23).

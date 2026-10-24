@@ -95,6 +95,17 @@ In sandbox tests `t19_*` and `t20_*` and in the local demo, the agent's full-acc
 
 The owner renamed the project from SpendPact to Spact and the GitHub repo to `0xileri/Spact`. Nothing is deployed yet, so the rename covers the on-chain identifiers too: the request-hash domain is now `spact.request.v1` (new test vector in INTEGRATIONS.md, recomputed with Python `hashlib`), the NEP-297 event standard is `spact`, and the transfer memos are `spact:<request_id>`. Packages are `@spact/*`, the crate is `spact-vault`, MCP environment variables are `SPACT_*`, and the MCP server is named `spact`. `HACKATHON.md` is the organizer's text and is unchanged. After a deploy, changing the hash domain or event standard would break approvals and indexers, so later renames should stay cosmetic.
 
+## ADR-020: Telegram alerts from a polling notifier with no webhook (2026-10-24)
+
+`apps/notifier` is a small Node process the owner runs. It polls the vault over RPC and sends Bot API `sendMessage` calls. AGENTS.md puts notifications in the Hono API on Workers, and that API is not built. The notifier is the smallest piece that delivers the alert, and it can move into the API later.
+
+- **No webhook:** updates are read with `getUpdates` only while a chat is being linked. With no public endpoint there is no webhook secret to verify (AGENTS.md section 7, bot hardening).
+- **Binding:** the notifier prints a one-time code (12 random characters, valid 10 minutes) on its own terminal. Only a private chat that sends exactly `/start <code>` is bound. This proves control of the machine running the notifier, which holds the bot token. It does not prove control of the owner wallet; a wallet-signed binding (NEP-413) is open. The bot cannot approve or move anything, so a wrong binding leaks alerts but cannot pay.
+- **Message safety:** plain text with no `parse_mode`. The agent's note is labeled, cleaned and has its links defanged, so the approval link is the only link. URL buttons only for https links.
+- **Scanning:** `list_requests` is newest first, so new requests are found from `request_count`, read before and after listing (the vault never removes requests). A first version assumed oldest-first and missed requests after the first pass. The sandbox test caught that.
+- **Idempotency:** state is saved after each message. A crash between the send and the save can repeat one alert, never skip one.
+- **Telegram API:** the Bot API docs and API were unreachable from the build environment. Request and response shapes were taken from Telegram's Bot API server source, and the client is tested against a mock. Real delivery is untested.
+
 ## Open questions (from AGENTS.md section 17)
 
 - [x] Official `HACKATHON.md`: added at the repo root (owner copy, 2026-10-23).
@@ -106,7 +117,7 @@ The owner renamed the project from SpendPact to Spact and the GitHub repo to `0x
 - [ ] Reconciliation for a stuck TRANSFER_PENDING (callback out of gas).
 - [ ] Storage pruning for terminal requests.
 - [ ] 1Click quote authenticity and deposit semantics (P1).
-- [ ] Telegram chat binding flow.
+- [x] Telegram chat binding flow: one-time code on the operator's terminal (ADR-020). Open: a wallet-signed binding.
 - [ ] Hosting for the approval page, with CSP and frame-ancestors headers.
 - [ ] A trusted RPC endpoint for testnet/mainnet.
 - [ ] License (MIT or Apache-2.0).

@@ -25,7 +25,10 @@ Status labels: **built** (code plus passing tests in this repo), **planned** (in
  AGENT HOST (Claude Code, Codex): MCP server (apps/mcp) [built]
    request_payment / get_payment_status -> signs with the agent's function-call key
 
- planned: API/indexer, Telegram notifier, 1Click adapter (P1)
+ OWNER PHONE: Telegram notifier (apps/notifier) [built]
+   polls the vault -> plain-text alert with the exact terms + approval link -> follow-up when paid
+
+ planned: API/indexer, 1Click adapter (P1)
 ```
 
 ## Vault contract (`contracts/spact-vault`) [built]
@@ -104,11 +107,24 @@ get_payment_status(request_id)
 
 The same preflight runs at startup, and the server exits if it fails. Tool results use fixed sentences; the agent's `reason` text is never echoed back.
 
+## Telegram notifier (`apps/notifier`) [built]
+
+A Node process with no NEAR keys and no webhook (ADR-020).
+
+```text
+every SPACT_POLL_SECONDS:
+  count = get_config.request_count; fresh = list_requests(newest count - seen); recheck count
+  for each fresh request, oldest first: AWAITING_APPROVAL and not expired by chain time -> alert
+  for each alerted open request: status changed -> follow-up (paid / rejected / expired / failed)
+link once: print a code on the terminal -> getUpdates until "/start <code>" from a private chat
+```
+
+The Bot API client validates every reply, waits for `retry_after` on 429, and never puts the bot token (part of the URL) in an error.
+
 ## Planned (not built)
 
 | Component | Role | Authority |
 |---|---|---|
 | Dashboard and Security Lab view | policy, history, test results | none: the owner's wallet signs |
 | API (Hono on Workers) | relay agent requests, index events, send notifications | none: on-chain state wins |
-| Telegram bot | notify the owner, deep-link to the approval page | none: a button tap cannot approve |
 | 1Click adapter (P1) | quote and owner-approved cross-chain route | trusted off-chain quote, disclosed |

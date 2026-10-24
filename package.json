@@ -15,6 +15,7 @@
     "contracts:test": "scripts/test-contracts.sh",
     "e2e": "pnpm --filter @spact/web e2e",
     "mcp:sandbox": "pnpm --filter @spact/mcp test:sandbox",
+    "notifier:sandbox": "pnpm --filter @spact/notifier test:sandbox",
     "dev:sandbox": "scripts/dev-sandbox.sh"
   },
   "devDependencies": {
