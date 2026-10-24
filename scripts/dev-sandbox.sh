@@ -36,20 +36,20 @@ import { KeyPair } from "near-api-js";
 const sk = JSON.parse(readFileSync(process.argv[1], "utf8")).agent_secret_key;
 writeFileSync(process.argv[2], JSON.stringify({ public_key: KeyPair.fromString(sk).getPublicKey().toString(), private_key: sk }), { mode: 0o600 });
 ' "$FIXTURE" "$AGENT_KEY")
-(cd "$ROOT" && pnpm -s --filter @spendpact/shared build && pnpm -s --filter @spendpact/mcp build) >&2
+(cd "$ROOT" && pnpm -s --filter @spact/shared build && pnpm -s --filter @spact/mcp build) >&2
 
 MCP_ENV=(
-  "SPENDPACT_NETWORK=sandbox"
-  "SPENDPACT_RPC_URL=$(field rpc_url)"
-  "SPENDPACT_VAULT_ID=$(field vault_id)"
-  "SPENDPACT_AGENT_ID=$(field agent_id)"
-  "SPENDPACT_AGENT_KEY_FILE=$AGENT_KEY"
-  "SPENDPACT_APPROVAL_URL=http://localhost:$WEB_PORT/"
+  "SPACT_NETWORK=sandbox"
+  "SPACT_RPC_URL=$(field rpc_url)"
+  "SPACT_VAULT_ID=$(field vault_id)"
+  "SPACT_AGENT_ID=$(field agent_id)"
+  "SPACT_AGENT_KEY_FILE=$AGENT_KEY"
+  "SPACT_APPROVAL_URL=http://localhost:$WEB_PORT/"
 )
 echo
 echo "Agent MCP server (the sandbox RPC port changes every run, so re-add it each time):"
-printf '  claude mcp add spendpact'; printf ' -e %s' "${MCP_ENV[@]}"; printf ' -- node %s\n' "$ROOT/apps/mcp/dist/index.js"
-printf '  codex mcp add spendpact'; printf ' --env %s' "${MCP_ENV[@]}"; printf ' -- node %s\n' "$ROOT/apps/mcp/dist/index.js"
+printf '  claude mcp add spact'; printf ' -e %s' "${MCP_ENV[@]}"; printf ' -- node %s\n' "$ROOT/apps/mcp/dist/index.js"
+printf '  codex mcp add spact'; printf ' --env %s' "${MCP_ENV[@]}"; printf ' -- node %s\n' "$ROOT/apps/mcp/dist/index.js"
 echo "Then ask the agent to pay $(field api_id) in $(field token_id) (6 decimals): 5 TUSD is paid at once, 20 TUSD waits for you."
 
 echo

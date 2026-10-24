@@ -1,14 +1,14 @@
-# SpendPact
+# Spact
 
 *Autonomous spending. Human rules.*
 
-SpendPact is a payment-policy firewall for AI agents on NEAR. An agent asks a NEAR vault contract to pay someone. The contract enforces the owner's limits on-chain. Anything above the auto limit waits until the owner approves that exact payment from their wallet.
+Spact is a payment-policy firewall for AI agents on NEAR. An agent asks a NEAR vault contract to pay someone. The contract enforces the owner's limits on-chain. Anything above the auto limit waits until the owner approves that exact payment from their wallet.
 
 > **Unaudited hackathon prototype.** Local sandbox only so far. Do not use with real funds.
 
 ## Why not just give the agent a wallet
 
-A wallet key can spend everything. A NEAR function-call key restricts which methods can be called, but its `allowance` caps gas, not dollars. SpendPact puts the rules in a contract the agent cannot change:
+A wallet key can spend everything. A NEAR function-call key restricts which methods can be called, but its `allowance` caps gas, not dollars. Spact puts the rules in a contract the agent cannot change:
 
 - **on-chain budgets:** per-payment auto limit, hard cap, and a UTC-day budget that counts in-flight transfers, so parallel requests cannot overspend
 - **approval bound to exact terms:** the owner approves a hash of the stored request (recipient, amount, token, vault, network, policy version), signed with a full-access key. A backend or bot that shows different terms produces a hash the vault rejects.
@@ -19,7 +19,7 @@ A wallet key can spend everything. A NEAR function-call key restricts which meth
 
 | Piece | State |
 |---|---|
-| Vault contract (`contracts/spendpact-vault`) | built, 51 unit tests |
+| Vault contract (`contracts/spact-vault`) | built, 51 unit tests |
 | Real-chain tests on a NEAR sandbox node (`contracts/integration-tests`) | 10 passing: auto payment, approval flow, parallel split, failed transfer, private callback, agent bypass attempts, init front-run, pause/recovery, the agent's restricted key |
 | Shared TS package: request hash, exact amounts, contract JSON schemas, reason codes, RPC client (`packages/shared`) | built, 19 tests; hash matches Rust and an independent Python vector |
 | Owner approval page (`apps/web`) | built, 14 unit tests and 7 browser tests on a local chain, including a tampered RPC |
@@ -64,8 +64,8 @@ To watch the attacks fail, run `pnpm e2e`. It drives Chromium against the same l
 3. Create a **deployer** account. Its key lands in `~/.near-credentials`:
    `near account create-account sponsor-by-faucet-service <name>.testnet autogenerate-new-keypair save-to-legacy-keychain network-config testnet create`
    The script spends about 6.6 testnet NEAR. Contract code alone locks about 4.3 NEAR, at roughly 1 NEAR per 100 KB. Top up from https://docs.near.org/getting-started/faucet if needed.
-4. Run `scripts/deploy-testnet.sh <name>.testnet <owner>.testnet`. You see `protocol version N` (it refuses below 84), then one confirmation per step. It ends with the vault id, its code hash, the agent's key files, and three `VITE_` lines. The agent's two demo requests are signed with a function-call key that can call only `request_direct_payment` and `execute_request` on the vault. That key goes in `~/.near-credentials/spendpact/agent.<name>.testnet.json`. The agent account's full-access key stays in your keychain; don't give it to the agent.
-5. Put those lines in `apps/web/.env.local` and run `pnpm --filter @spendpact/web dev`. Open `http://localhost:5173/?request=demo-approve-1` and connect the owner wallet. Click **Approve and pay** and confirm in the wallet. You see **Confirmed on chain: approved and paid**, with a link to testnet.nearblocks.io.
+4. Run `scripts/deploy-testnet.sh <name>.testnet <owner>.testnet`. You see `protocol version N` (it refuses below 84), then one confirmation per step. It ends with the vault id, its code hash, the agent's key files, and three `VITE_` lines. The agent's two demo requests are signed with a function-call key that can call only `request_direct_payment` and `execute_request` on the vault. That key goes in `~/.near-credentials/spact/agent.<name>.testnet.json`. The agent account's full-access key stays in your keychain; don't give it to the agent.
+5. Put those lines in `apps/web/.env.local` and run `pnpm --filter @spact/web dev`. Open `http://localhost:5173/?request=demo-approve-1` and connect the owner wallet. Click **Approve and pay** and confirm in the wallet. You see **Confirmed on chain: approved and paid**, with a link to testnet.nearblocks.io.
 
 ## Run the tests
 

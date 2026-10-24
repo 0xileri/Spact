@@ -7,7 +7,7 @@ Status labels: **built** (code plus passing tests in this repo), **planned** (in
                          | set_policy / set_paused / approve_request(id, hash)
                          | reject_request / owner_withdraw        [built, contract side]
                          v
- AI AGENT --request_direct_payment / execute_request--> SPENDPACT VAULT (Rust, near-sdk)  [built]
+ AI AGENT --request_direct_payment / execute_request--> SPACT VAULT (Rust, near-sdk)  [built]
  (own NEAR account,                                     - policy + version
   restricted key)                                       - immutable requests + hash
                                                         - UTC-day ledger: executed + pending
@@ -28,7 +28,7 @@ Status labels: **built** (code plus passing tests in this repo), **planned** (in
  planned: API/indexer, Telegram notifier, 1Click adapter (P1)
 ```
 
-## Vault contract (`contracts/spendpact-vault`) [built]
+## Vault contract (`contracts/spact-vault`) [built]
 
 **State:** owner, network label, agents (max 8), paused flag, policy (tokens, recipient allowlist, limits), `policy_version`, open-approval counter, requests (`IterableMap<String, PaymentRequest>`), ledgers keyed by `(token, utc_day)`, stored-request counts per day.
 
@@ -57,7 +57,7 @@ The spec's AUTO_AUTHORIZED, RESERVED and SOURCE_CONFIRMED states happen inside o
 
 **Request hash:** sha256 over a versioned, borsh-compatible encoding of domain, network, vault id, request id, agent, route, token, amount, recipient, reason, expiry and policy version (`src/digest.rs`, mirrored in `packages/shared/src/digest.ts`).
 
-**Events:** NEP-297 `EVENT_JSON` with standard `spendpact` for policy, pause, agent changes, blocked requests, status transitions and owner withdrawals. Indexers read events; contract state is the source of truth.
+**Events:** NEP-297 `EVENT_JSON` with standard `spact` for policy, pause, agent changes, blocked requests, status transitions and owner withdrawals. Indexers read events; contract state is the source of truth.
 
 ## Mock token (`contracts/mock-ft`) [built, test only]
 
@@ -69,7 +69,7 @@ Contract JSON types, reason codes with user-facing text, exact BigInt amount par
 
 ## Approval page (`apps/web`) [built]
 
-React 19 + Vite 8 + Tailwind 4. No backend: it reads the vault directly over NEAR JSON-RPC (`get_config`, `get_policy`, `get_request`, `get_budget`, token `ft_metadata`, latest final block time) and validates every response with the zod schemas in `@spendpact/shared`.
+React 19 + Vite 8 + Tailwind 4. No backend: it reads the vault directly over NEAR JSON-RPC (`get_config`, `get_policy`, `get_request`, `get_budget`, token `ft_metadata`, latest final block time) and validates every response with the zod schemas in `@spact/shared`.
 
 ```text
 ?request=<id>  -> loadSnapshot -> assess():

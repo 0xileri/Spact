@@ -85,11 +85,15 @@ In sandbox tests `t19_*` and `t20_*` and in the local demo, the agent's full-acc
 `apps/mcp` is a local stdio server with exactly the two tools AGENTS.md section 9 names.
 
 - **SDK:** `@modelcontextprotocol/server` 2.3.1, the v2 line the SDK repo calls stable. Over stdio it serves both 2025-era clients (`initialize`) and 2026-07-28 clients. 2.4.0 came out the day before this decision, so the pin is the previous release.
-- **Names:** `request_payment` and `get_payment_status`, without the `spendpact.` prefix in AGENTS.md. The server is named `spendpact`, and hosts already prefix tool names with the server name (Claude Code shows `mcp__spendpact__request_payment`).
+- **Names:** `request_payment` and `get_payment_status`, without the `spact.` prefix in AGENTS.md. The server is named `spact`, and hosts already prefix tool names with the server name (Claude Code shows `mcp__spact__request_payment`).
 - **Key:** the server signs with the agent's function-call key (ADR-017). It reads the key's permission from chain at startup and before every request, and refuses a full-access key, a key for another contract, a key with extra methods, a vault on another network, or an agent the vault does not list. The vault enforces the policy regardless.
 - **Finality:** it waits for `FINAL` before answering, so a reported `SETTLED` is in final blocks. A sandbox test caught the earlier optimistic answer running ahead of final reads.
 - **Untrusted text:** tool results use fixed sentences and reason-code explanations. The agent's `reason` goes to the owner and is never echoed back to the model.
 - **No execute tool yet:** if the owner approves without paying (ADR-014, "Pay immediately" unticked), the agent cannot execute through MCP. The key allows `execute_request` for when that tool is added.
+
+## ADR-019: The project is renamed Spact (2026-10-24)
+
+The owner renamed the project from SpendPact to Spact and the GitHub repo to `0xileri/Spact`. Nothing is deployed yet, so the rename covers the on-chain identifiers too: the request-hash domain is now `spact.request.v1` (new test vector in INTEGRATIONS.md, recomputed with Python `hashlib`), the NEP-297 event standard is `spact`, and the transfer memos are `spact:<request_id>`. Packages are `@spact/*`, the crate is `spact-vault`, MCP environment variables are `SPACT_*`, and the MCP server is named `spact`. `HACKATHON.md` is the organizer's text and is unchanged. After a deploy, changing the hash domain or event standard would break approvals and indexers, so later renames should stay cosmetic.
 
 ## Open questions (from AGENTS.md section 17)
 

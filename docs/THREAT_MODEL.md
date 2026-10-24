@@ -59,7 +59,7 @@ Unaudited hackathon prototype. This file maps each invariant from AGENTS.md sect
 
 ## Approval page (apps/web)
 
-The page reads the vault straight from a NEAR RPC endpoint and treats every response as untrusted (zod schemas in `@spendpact/shared`).
+The page reads the vault straight from a NEAR RPC endpoint and treats every response as untrusted (zod schemas in `@spact/shared`).
 
 - **What a lying RPC can do:** show wrong terms, a wrong status or wrong balances. It cannot make the owner approve different terms. The page hashes the terms it displays together with the network and vault id it is configured for, and the owner signs that hash. If the RPC also forges the hash, the vault compares it to what it stored and refuses with `HASH_MISMATCH`. Both cases are covered by browser tests that rewrite RPC responses in flight.
 - **What it can still do:** make the owner reject a legitimate request, or wait on a payment that was never made. Shown status is only as good as the RPC; use a trusted endpoint.
