@@ -1,0 +1,19 @@
+{
+  "name": "@spact/security-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Builds the Security Lab report from test-runner output: AGENTS.md section 10 cases and the tests behind them",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@spact/shared": "workspace:*",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "vitest": "5.0.3"
+  }
+}

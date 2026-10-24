@@ -11,6 +11,7 @@ const CONFIG: AppConfig = {
   vaultId: "vault.test.near",
   explorerTxUrl: null,
   explorerAccountUrl: null,
+  securityReportUrl: "security-report.json",
   devSignerUrl: "http://127.0.0.1:8788",
 };
 const NOW = 1_761_996_400_000_000_000n;

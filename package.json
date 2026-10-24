@@ -16,6 +16,7 @@
     "e2e": "pnpm --filter @spact/web e2e",
     "mcp:sandbox": "pnpm --filter @spact/mcp test:sandbox",
     "notifier:sandbox": "pnpm --filter @spact/notifier test:sandbox",
+    "security:report": "scripts/security-report.sh",
     "dev:sandbox": "scripts/dev-sandbox.sh"
   },
   "devDependencies": {

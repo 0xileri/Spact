@@ -4,3 +4,4 @@ export * from "./reasonCodes.js";
 export * from "./rpc.js";
 export type * from "./types.js";
 export * from "./schemas.js";
+export * from "./securityReport.js";

@@ -13,7 +13,7 @@ A wallet key can spend everything. A NEAR function-call key restricts which meth
 - **on-chain budgets:** per-payment auto limit, hard cap, and a UTC-day budget that counts in-flight transfers, so parallel requests cannot overspend
 - **approval bound to exact terms:** the owner approves a hash of the stored request (recipient, amount, token, vault, network, policy version), signed with a full-access key. A backend or bot that shows different terms produces a hash the vault rejects.
 - **no replay:** each request id executes at most once; the transfer callback settles exactly once
-- **tests that attack it:** a Security Lab suite runs the bypass attempts against a real local NEAR node
+- **tests that attack it:** the Security Lab runs the bypass attempts against a real local NEAR node, and its page shows each attack with the test results behind it
 
 ## What works today
 
@@ -22,7 +22,8 @@ A wallet key can spend everything. A NEAR function-call key restricts which meth
 | Vault contract (`contracts/spact-vault`) | built, 51 unit tests |
 | Real-chain tests on a NEAR sandbox node (`contracts/integration-tests`) | 10 passing: auto payment, approval flow, parallel split, failed transfer, private callback, agent bypass attempts, init front-run, pause/recovery, the agent's restricted key |
 | Shared TS package: request hash, exact amounts, contract JSON schemas, reason codes, RPC client (`packages/shared`) | built, 19 tests; hash matches Rust and an independent Python vector |
-| Owner dashboard and approval page (`apps/web`) | built, 18 unit tests and 9 browser tests on a local chain, including tampered RPC answers |
+| Owner dashboard and approval page (`apps/web`) | built, 21 unit tests and 12 browser tests on a local chain, including tampered RPC answers |
+| Security Lab report and page (`packages/security-lab`, `?page=security`) | built: 13 of 18 attack cases pass on a local chain, 3 in unit tests only, 2 wait for P1 |
 | Agent MCP server for Claude Code / Codex (`apps/mcp`) | built, 24 unit tests and 11 tests over stdio on a local chain |
 | Local demo with no wallet or testnet needed (`scripts/dev-sandbox.sh`) | works |
 | Testnet deploy script (`scripts/deploy-testnet.sh`) | rehearsed on a local node; not run on testnet yet |
@@ -35,6 +36,14 @@ Details: [docs/STATUS.md](docs/STATUS.md). Security mapping: [docs/THREAT_MODEL.
 ## Let Claude Code or Codex pay
 
 `apps/mcp` is an MCP server with two tools, `request_payment` and `get_payment_status`. It signs with the agent's function-call key and refuses to start with a full-access key. `scripts/dev-sandbox.sh` prints the `claude mcp add` and `codex mcp add` commands for the local chain. Then ask the agent to pay `api.test.near` 5 TUSD (paid at once) or 20 TUSD (it gets an approval link and waits for you). Setup for testnet: [apps/mcp/README.md](apps/mcp/README.md).
+
+## Security Lab
+
+```bash
+scripts/security-report.sh
+```
+
+This runs every suite, then builds `apps/web/public/security-report.json` from the runners' own output. Open `http://localhost:5173/?page=security` while `scripts/dev-sandbox.sh` is running. Each attack from AGENTS.md section 10 is listed with the exact tests behind it, their results and where they ran. The page also shows the commit, the run, and a sha256 of each raw output file. A case passes on a local chain only if every listed test passed and at least one ran against a NEAR node. The page recomputes that itself instead of trusting the file. In CI the same report is the `security-report` artifact of each run.
 
 ## Get a Telegram alert
 
@@ -54,7 +63,7 @@ scripts/dev-sandbox.sh
 3. Click **Approve and pay**. You see **Confirmed on chain: approved and paid** with a transaction hash, the status turns **Paid**, and the budget drops to **22 TUSD of 50**.
 4. Open http://localhost:5173/, the dashboard. The demo request is gone from **Waiting for your decision**, it shows as **Paid** under **Agent activity**, and the TUSD card shows **22 TUSD of 50 TUSD left today** and **Vault holds 972 TUSD**.
 
-To watch the attacks fail, run `pnpm e2e`. It drives Chromium against the same local setup, and you see `9 passed`. Three of those tests rewrite the RPC response on its way to the page:
+To watch the attacks fail, run `pnpm e2e`. It drives Chromium against the same local setup, and you see `12 passed`. Three of those tests rewrite the RPC response on its way to the page:
 
 - **Recipient changed, hash kept:** the page shows **Hash check failed: do not approve** and the approve button is disabled.
 - **Recipient and hash both forged:** the page shows the attacker's terms with a passing check, the owner approves, and the vault refuses with `HASH_MISMATCH`. The test then reads the chain directly: nothing moved and the request still awaits approval.
@@ -85,7 +94,7 @@ pnpm install --frozen-lockfile
 pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ```
 
-Expected: `51 passed` (vault unit), `1 passed` (mock token), `10 passed` (sandbox), `19 passed` (shared), `18 passed` (web), `24 passed` (mcp) and `27 passed` (notifier). `pnpm mcp:sandbox` runs the MCP server over stdio against a local chain: `11 passed`. `pnpm notifier:sandbox` runs the notifier against a local chain and a mock Bot API: `4 passed`. The first sandbox run downloads the NEAR sandbox node binary.
+Expected: `51 passed` (vault unit), `1 passed` (mock token), `10 passed` (sandbox), `19 passed` (shared), `21 passed` (web), `24 passed` (mcp), `27 passed` (notifier) and `8 passed` (security-lab). `pnpm mcp:sandbox` runs the MCP server over stdio against a local chain: `11 passed`. `pnpm notifier:sandbox` runs the notifier against a local chain and a mock Bot API: `4 passed`. The first sandbox run downloads the NEAR sandbox node binary.
 
 On testnet or mainnet the page uses a real wallet through near-connect. Configure it with `apps/web/.env.example`.
 
@@ -111,6 +120,7 @@ apps/web/                 owner approval page, dev signer, browser tests
 apps/mcp/                 the agent's MCP server (stdio) and its sandbox tests
 apps/notifier/            Telegram alerts for the owner, with a mock Bot API for tests
 packages/shared/          TS types, request digest, amount helpers, JSON schemas, RPC client
+packages/security-lab/    builds the Security Lab report from test output; catalog of attacks
 scripts/                  build and test scripts
 docs/                     architecture, threat model, decisions, status, integrations
 ```

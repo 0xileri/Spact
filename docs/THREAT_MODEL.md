@@ -21,26 +21,13 @@ Unaudited hackathon prototype. This file maps each invariant from AGENTS.md sect
 
 ## Security Lab coverage (AGENTS.md section 10)
 
-| Test | Case | Unit | Sandbox / browser |
-|---|---|---|---|
-| T01 | over hard cap | yes | yes |
-| T02 | change recipient or amount after approval | yes | wrong hash: yes; browser e2e: altered RPC data is flagged, and a forged consistent hash is refused by the vault |
-| T03 | replay | yes | yes |
-| T04 | parallel split against the daily budget | sequential | parallel txs: yes |
-| T05 | agent calls owner methods | yes | yes |
-| T06 | forged Telegram callback | n/a: the bot has no buttons that act | notifier sandbox test: a forged `callback_query` "approve" is ignored and the request stays AWAITING_APPROVAL; a group chat and a wrong code cannot bind |
-| T07 | expired approval | yes | no |
-| T08 | transfer fails / recipient not registered | yes | yes |
-| T09 | pause before execution | yes | pause blocks new requests: yes |
-| T10 | UTC midnight | yes (mocked clock) | no (sandbox clock not controllable) |
-| T11 | bad decimals, zero, overflow | yes + TS `parseUnits` | no |
-| T12 | unlisted token or recipient | yes | recipient: yes |
-| T13 | refund reported but not received | P1 | P1 |
-| T14 | quote deposit address differs from payee | P1 | P1 |
-| T15 | wrong vault, network or policy version | yes | no |
-| T16 | direct call to the private callback | cannot be unit tested | yes |
-| T17 | retries never transfer twice | repeated callbacks: yes | no |
-| T18 | prompt-injected agent | n/a | agent key cannot bypass policy, and cannot call any other method or contract, move NEAR, add keys or delete the account: yes. Through the MCP server, a request whose reason claims the owner approved an unlisted account is BLOCKED with `RECIPIENT_NOT_ALLOWED` and that account receives nothing (`apps/mcp` sandbox test `T18`). No LLM in the loop yet. |
+The source of truth is the generated Security Lab report, not a table kept by hand. `packages/security-lab/src/catalog.ts` maps each case T01-T18 to the exact tests behind it. The report is then built from the test runners' raw output (`scripts/security-report.sh` locally; the `security-report` job and artifact in CI) and shown on the approval site at `?page=security`. A case passes on a local chain only if every listed test ran and passed and at least one of them checks chain state on a local NEAR node. A renamed or missing test turns its case FAILED. The page recomputes every status from the evidence, so a hand-edited verdict shows as a contradiction (browser test).
+
+Last full local run (2026-10-24, on `eb1ed44` plus this change before it was committed), 180 tests in 10 suites, all passed:
+
+- **Passed on a local chain (13):** T01-T06, T08, T09, T11, T12, T16, T17, T18.
+- **Passed in unit tests only (3):** T07 expired approval, T10 UTC midnight, T15 wrong vault, network or policy version.
+- **Not covered (2):** T13 and T14, both P1. There is no cross-chain route yet.
 
 ## Known limitations and trust assumptions
 

@@ -20,6 +20,10 @@ describe("parseConfig", () => {
     expect(explorerAccountLink(cfg, "../evil")).toBeNull();
     expect(explorerAccountLink(parseConfig({ ...BASE, VITE_NEAR_NETWORK: "sandbox", VITE_NEAR_RPC_URL: "http://127.0.0.1:3030" }), "vault.testnet")).toBeNull();
     expect(() => parseConfig({ ...BASE, VITE_EXPLORER_ACCOUNT_URL: "https://x.example/a" })).toThrow(/\{account\}/);
+    expect(cfg.securityReportUrl).toBe("security-report.json");
+    expect(parseConfig({ ...BASE, VITE_SECURITY_REPORT_URL: "https://ci.example/report.json" }).securityReportUrl).toBe("https://ci.example/report.json");
+    expect(() => parseConfig({ ...BASE, VITE_SECURITY_REPORT_URL: "http://evil.example/r.json" })).toThrow(/https/);
+    expect(() => parseConfig({ ...BASE, VITE_SECURITY_REPORT_URL: "javascript:alert(1)" })).toThrow();
   });
 
   it("refuses the dev signer outside sandbox", () => {

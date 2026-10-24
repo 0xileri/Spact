@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import { ApprovalPage } from "./components/ApprovalPage.js";
 import { Dashboard } from "./components/Dashboard.js";
+import { SecurityLab } from "./components/SecurityLab.js";
 import { Badge, Button, Mono, Notice } from "./components/ui.js";
 import type { AppConfig, NetworkId } from "./config.js";
 import { createSigner } from "./signers/index.js";
@@ -20,10 +21,13 @@ export function App({ config }: { config: AppConfig }) {
   const requestId = params.get("request");
   const linkVault = params.get("vault");
   const badge = NETWORK_BADGE[config.network];
-  const onDashboard = !requestId && (linkVault === null || linkVault === config.vaultId);
+  const page = params.get("page");
+  const onSecurityLab = page === "security" && !requestId;
+  const onDashboard = !requestId && !onSecurityLab && (linkVault === null || linkVault === config.vaultId);
+  const wide = onDashboard || onSecurityLab;
 
   return (
-    <div className={`mx-auto flex min-h-screen flex-col px-4 py-6 ${onDashboard ? "max-w-5xl" : "max-w-2xl"}`}>
+    <div className={`mx-auto flex min-h-screen flex-col px-4 py-6 ${wide ? "max-w-5xl" : "max-w-2xl"}`}>
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <a href="./" className="text-lg font-bold tracking-tight">
@@ -35,6 +39,18 @@ export function App({ config }: { config: AppConfig }) {
               vault <Mono>{config.vaultId}</Mono>
             </span>
           </div>
+          <nav className="mt-2 flex gap-4 text-sm" aria-label="Pages">
+            <a href="./" className={onDashboard ? "font-semibold text-slate-900" : "text-slate-600 hover:text-slate-900"} aria-current={onDashboard ? "page" : undefined}>
+              Overview
+            </a>
+            <a
+              href="?page=security"
+              className={onSecurityLab ? "font-semibold text-slate-900" : "text-slate-600 hover:text-slate-900"}
+              aria-current={onSecurityLab ? "page" : undefined}
+            >
+              Security Lab
+            </a>
+          </nav>
         </div>
         <div className="flex items-center gap-2" data-testid="wallet">
           {signer === null ? (
@@ -68,6 +84,8 @@ export function App({ config }: { config: AppConfig }) {
               The link names <Mono>{linkVault}</Mono>, but this page only approves payments for <Mono>{config.vaultId}</Mono>. Nothing was loaded.
             </p>
           </Notice>
+        ) : onSecurityLab ? (
+          <SecurityLab config={config} />
         ) : requestId ? (
           <ApprovalPage config={config} requestId={requestId} signer={signer} wallet={wallet} />
         ) : (
