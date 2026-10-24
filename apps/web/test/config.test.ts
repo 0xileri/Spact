@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ConfigError, explorerTxLink, parseConfig } from "../src/config.js";
+import { ConfigError, explorerAccountLink, explorerTxLink, parseConfig } from "../src/config.js";
 
 const BASE = {
   VITE_NEAR_NETWORK: "testnet",
@@ -16,6 +16,10 @@ describe("parseConfig", () => {
       "https://testnet.nearblocks.io/txns/8K4qJ3d5Wq8g5M8gS3o8v8xTqP4mT3o1g7y1J7kq5fX1",
     );
     expect(explorerTxLink(cfg, "not a hash")).toBeNull();
+    expect(explorerAccountLink(cfg, "vault.testnet")).toBe("https://testnet.nearblocks.io/address/vault.testnet");
+    expect(explorerAccountLink(cfg, "../evil")).toBeNull();
+    expect(explorerAccountLink(parseConfig({ ...BASE, VITE_NEAR_NETWORK: "sandbox", VITE_NEAR_RPC_URL: "http://127.0.0.1:3030" }), "vault.testnet")).toBeNull();
+    expect(() => parseConfig({ ...BASE, VITE_EXPLORER_ACCOUNT_URL: "https://x.example/a" })).toThrow(/\{account\}/);
   });
 
   it("refuses the dev signer outside sandbox", () => {

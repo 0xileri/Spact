@@ -45,6 +45,15 @@ export function chain(f: Fixture = fixture()) {
       });
       return r ?? null;
     },
+    async budget(): Promise<{ available: string; daily_limit: string }> {
+      const b = await provider.callFunction<{ available: string; daily_limit: string }>({
+        contractId: f.vault_id,
+        method: "get_budget",
+        args: { token: f.token_id },
+      });
+      if (!b) throw new Error("get_budget returned nothing");
+      return b;
+    },
     async balance(accountId: string): Promise<bigint> {
       const raw = await provider.callFunction<string>({ contractId: f.token_id, method: "ft_balance_of", args: { account_id: accountId } });
       if (typeof raw !== "string") throw new Error(`ft_balance_of returned ${String(raw)}`);

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import { ApprovalPage } from "./components/ApprovalPage.js";
-import { PendingList } from "./components/PendingList.js";
+import { Dashboard } from "./components/Dashboard.js";
 import { Badge, Button, Mono, Notice } from "./components/ui.js";
 import type { AppConfig, NetworkId } from "./config.js";
 import { createSigner } from "./signers/index.js";
@@ -20,9 +20,10 @@ export function App({ config }: { config: AppConfig }) {
   const requestId = params.get("request");
   const linkVault = params.get("vault");
   const badge = NETWORK_BADGE[config.network];
+  const onDashboard = !requestId && (linkVault === null || linkVault === config.vaultId);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-6">
+    <div className={`mx-auto flex min-h-screen flex-col px-4 py-6 ${onDashboard ? "max-w-5xl" : "max-w-2xl"}`}>
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <a href="./" className="text-lg font-bold tracking-tight">
@@ -70,7 +71,7 @@ export function App({ config }: { config: AppConfig }) {
         ) : requestId ? (
           <ApprovalPage config={config} requestId={requestId} signer={signer} wallet={wallet} />
         ) : (
-          <PendingList config={config} />
+          <Dashboard config={config} />
         )}
       </main>
 

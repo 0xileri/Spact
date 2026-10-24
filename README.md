@@ -22,13 +22,12 @@ A wallet key can spend everything. A NEAR function-call key restricts which meth
 | Vault contract (`contracts/spact-vault`) | built, 51 unit tests |
 | Real-chain tests on a NEAR sandbox node (`contracts/integration-tests`) | 10 passing: auto payment, approval flow, parallel split, failed transfer, private callback, agent bypass attempts, init front-run, pause/recovery, the agent's restricted key |
 | Shared TS package: request hash, exact amounts, contract JSON schemas, reason codes, RPC client (`packages/shared`) | built, 19 tests; hash matches Rust and an independent Python vector |
-| Owner approval page (`apps/web`) | built, 14 unit tests and 7 browser tests on a local chain, including a tampered RPC |
+| Owner dashboard and approval page (`apps/web`) | built, 18 unit tests and 9 browser tests on a local chain, including tampered RPC answers |
 | Agent MCP server for Claude Code / Codex (`apps/mcp`) | built, 24 unit tests and 11 tests over stdio on a local chain |
 | Local demo with no wallet or testnet needed (`scripts/dev-sandbox.sh`) | works |
 | Testnet deploy script (`scripts/deploy-testnet.sh`) | rehearsed on a local node; not run on testnet yet |
 | Signing with a real wallet | not yet |
 | Telegram alert for the owner (`apps/notifier`) | built, 27 unit tests and 4 tests on a local chain against a mock Bot API; not yet tried with real Telegram |
-| Dashboard | not yet (an open-request list exists) |
 | NEAR Intents / 1Click cross-chain route | not yet (P1) |
 
 Details: [docs/STATUS.md](docs/STATUS.md). Security mapping: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
@@ -53,12 +52,13 @@ scripts/dev-sandbox.sh
 1. Wait for `Open http://localhost:5173/?request=demo-approve-1` and open it. You see **25 TUSD to api.test.near**, status **Awaiting approval**, the agent's note, the policy (auto up to 10 TUSD, at most 30 TUSD per payment, **47 TUSD of 50** left today), and a green **Hash check passed** box.
 2. Click **Connect Local sandbox signer**. The header shows `owner.test.near`.
 3. Click **Approve and pay**. You see **Confirmed on chain: approved and paid** with a transaction hash, the status turns **Paid**, and the budget drops to **22 TUSD of 50**.
-4. Open http://localhost:5173/. The demo request is gone from **Waiting for your decision**.
+4. Open http://localhost:5173/, the dashboard. The demo request is gone from **Waiting for your decision**, it shows as **Paid** under **Agent activity**, and the TUSD card shows **22 TUSD of 50 TUSD left today** and **Vault holds 972 TUSD**.
 
-To watch the attacks fail, run `pnpm e2e`. It drives Chromium against the same local setup, and you see `7 passed`. Two of those tests rewrite the RPC response on its way to the page:
+To watch the attacks fail, run `pnpm e2e`. It drives Chromium against the same local setup, and you see `9 passed`. Three of those tests rewrite the RPC response on its way to the page:
 
 - **Recipient changed, hash kept:** the page shows **Hash check failed: do not approve** and the approve button is disabled.
 - **Recipient and hash both forged:** the page shows the attacker's terms with a passing check, the owner approves, and the vault refuses with `HASH_MISMATCH`. The test then reads the chain directly: nothing moved and the request still awaits approval.
+- **Budget inflated:** the dashboard sees that the numbers don't add up and shows **Budget numbers from the RPC do not add up** instead of them.
 
 ## Deploy to testnet
 
@@ -85,7 +85,7 @@ pnpm install --frozen-lockfile
 pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ```
 
-Expected: `51 passed` (vault unit), `1 passed` (mock token), `10 passed` (sandbox), `19 passed` (shared), `14 passed` (web), `24 passed` (mcp) and `27 passed` (notifier). `pnpm mcp:sandbox` runs the MCP server over stdio against a local chain: `11 passed`. `pnpm notifier:sandbox` runs the notifier against a local chain and a mock Bot API: `4 passed`. The first sandbox run downloads the NEAR sandbox node binary.
+Expected: `51 passed` (vault unit), `1 passed` (mock token), `10 passed` (sandbox), `19 passed` (shared), `18 passed` (web), `24 passed` (mcp) and `27 passed` (notifier). `pnpm mcp:sandbox` runs the MCP server over stdio against a local chain: `11 passed`. `pnpm notifier:sandbox` runs the notifier against a local chain and a mock Bot API: `4 passed`. The first sandbox run downloads the NEAR sandbox node binary.
 
 On testnet or mainnet the page uses a real wallet through near-connect. Configure it with `apps/web/.env.example`.
 

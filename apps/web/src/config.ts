@@ -9,6 +9,8 @@ export interface AppConfig {
   vaultId: string;
   /** Explorer URL template with a `{hash}` placeholder, or null when there is no explorer. */
   explorerTxUrl: string | null;
+  /** Explorer URL template with an `{account}` placeholder, or null when there is no explorer. */
+  explorerAccountUrl: string | null;
   /** Local dev signer, sandbox only. */
   devSignerUrl: string | null;
 }
@@ -19,6 +21,13 @@ const DEFAULT_EXPLORERS: Record<NetworkId, string | null> = {
   sandbox: null,
   testnet: "https://testnet.nearblocks.io/txns/{hash}",
   mainnet: "https://nearblocks.io/txns/{hash}",
+};
+
+// account pages as linked from the NEAR docs (e.g. protocol/accounts-contracts/account-id.mdx)
+const DEFAULT_ACCOUNT_EXPLORERS: Record<NetworkId, string | null> = {
+  sandbox: null,
+  testnet: "https://testnet.nearblocks.io/address/{account}",
+  mainnet: "https://nearblocks.io/address/{account}",
 };
 
 function isLocalHost(url: URL): boolean {
@@ -68,7 +77,17 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
     throw new ConfigError("VITE_EXPLORER_TX_URL must contain {hash}");
   }
 
-  return { network, rpcUrl: rpc.toString(), vaultId: vault.data, explorerTxUrl, devSignerUrl };
+  const explorerAccountUrl = env.VITE_EXPLORER_ACCOUNT_URL || DEFAULT_ACCOUNT_EXPLORERS[network];
+  if (explorerAccountUrl !== null && !explorerAccountUrl.includes("{account}")) {
+    throw new ConfigError("VITE_EXPLORER_ACCOUNT_URL must contain {account}");
+  }
+
+  return { network, rpcUrl: rpc.toString(), vaultId: vault.data, explorerTxUrl, explorerAccountUrl, devSignerUrl };
+}
+
+export function explorerAccountLink(config: Pick<AppConfig, "explorerAccountUrl">, account: string): string | null {
+  if (!config.explorerAccountUrl || !accountId.safeParse(account).success) return null;
+  return config.explorerAccountUrl.replace("{account}", encodeURIComponent(account));
 }
 
 export function explorerTxLink(config: AppConfig, txHash: string): string | null {

@@ -106,6 +106,10 @@ The owner renamed the project from SpendPact to Spact and the GitHub repo to `0x
 - **Idempotency:** state is saved after each message. A crash between the send and the save can repeat one alert, never skip one.
 - **Telegram API:** the Bot API docs and API were unreachable from the build environment. Request and response shapes were taken from Telegram's Bot API server source, and the client is tested against a mock. Real delivery is untested.
 
+## ADR-021: The dashboard reads the chain directly, and shows no transaction hashes (2026-10-24)
+
+The dashboard at `/` replaces the open-request list. Like the approval page (ADR-013), it reads the vault over RPC with no backend: `get_config`, `get_policy`, `list_requests` (50 at a time, newest first), and per token `get_budget`, `ft_metadata` and `ft_balance_of` for the vault. It shows no transaction hashes per request, because the vault does not store them and no indexer exists yet. It says so instead of guessing. Blocked requests are never stored, so they appear only as events, and the page says that too. Account links use the nearblocks address pattern from the NEAR docs; sandbox has none.
+
 ## Open questions (from AGENTS.md section 17)
 
 - [x] Official `HACKATHON.md`: added at the repo root (owner copy, 2026-10-23).
