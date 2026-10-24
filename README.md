@@ -24,7 +24,8 @@ A wallet key can spend everything. A NEAR function-call key restricts which meth
 | Shared TS package: request hash, exact amounts, contract JSON schemas, reason codes (`packages/shared`) | built, 14 tests; hash matches Rust and an independent Python vector |
 | Owner approval page (`apps/web`) | built, 17 unit tests and 7 browser tests on a local chain, including a tampered RPC |
 | Local demo with no wallet or testnet needed (`scripts/dev-sandbox.sh`) | works |
-| Testnet deployment, signing with a real wallet | not yet |
+| Testnet deploy script (`scripts/deploy-testnet.sh`) | rehearsed on a local node; not run on testnet yet |
+| Signing with a real wallet | not yet |
 | Dashboard, Telegram, MCP tool | not yet (an open-request list exists) |
 | NEAR Intents / 1Click cross-chain route | not yet (P1) |
 
@@ -48,6 +49,18 @@ To watch the attacks fail, run `pnpm e2e`. It drives Chromium against the same l
 
 - **Recipient changed, hash kept:** the page shows **Hash check failed: do not approve** and the approve button is disabled.
 - **Recipient and hash both forged:** the page shows the attacker's terms with a passing check, the owner approves, and the vault refuses with `HASH_MISMATCH`. The test then reads the chain directly: nothing moved and the request still awaits approval.
+
+## Deploy to testnet
+
+`scripts/deploy-testnet.sh` uses only commands from the NEAR docs. It was rehearsed end to end against a local node (`scripts/rehearse-deploy-sandbox.sh`), but has **not been run on testnet yet**.
+
+1. Install near-cli-rs: `npm install -g near-cli-rs@latest` (other options: https://docs.near.org/tools/cli#installation).
+2. Create the **owner** account in a wallet listed at https://wallet.near.org. Pick a `.testnet` account; this is the account that approves payments.
+3. Create a **deployer** account. Its key lands in `~/.near-credentials`:
+   `near account create-account sponsor-by-faucet-service <name>.testnet autogenerate-new-keypair save-to-legacy-keychain network-config testnet create`
+   The script spends about 6.6 testnet NEAR. Contract code alone locks about 4.3 NEAR, at roughly 1 NEAR per 100 KB. Top up from https://docs.near.org/getting-started/faucet if needed.
+4. Run `scripts/deploy-testnet.sh <name>.testnet <owner>.testnet`. You see `protocol version N` (it refuses below 84), then one confirmation per step. It ends with the vault id, its code hash, and three `VITE_` lines.
+5. Put those lines in `apps/web/.env.local` and run `pnpm --filter @spendpact/web dev`. Open `http://localhost:5173/?request=demo-approve-1` and connect the owner wallet. Click **Approve and pay** and confirm in the wallet. You see **Confirmed on chain: approved and paid**, with a link to testnet.nearblocks.io.
 
 ## Run the tests
 

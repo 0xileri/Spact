@@ -17,6 +17,8 @@ The first build session ran in a cloud container with a restricted network allow
 | `docs.near-intents.org`, `1click.chaindefuser.com` | **no** | 1Click not integrated or re-verified (P1) |
 | `rpc.testnet.near.org` | **no** | No testnet deployment from this environment |
 | `core.telegram.org` | **no** | Telegram not integrated yet |
+| `github.com` (anonymous git) | yes | NEAR docs source cloned from `github.com/near/docs` at `04d956c` (2026-10-24), which is what docs.near.org renders |
+| testnet RPCs, `testnet.nearblocks.io`, faucets | **no** | Checked 2026-10-24: `test.rpc.fastnear.com`, `rpc.testnet.near.org`, `archival-rpc.testnet.near.org`, `near-testnet.drpc.org` all unreachable. Testnet steps run on the owner's machine |
 
 ## Rust / NEAR
 
@@ -72,7 +74,22 @@ NEAR RPC facts the page relies on, observed against the sandbox node (2.13.4):
 - `query` with `request_type: "call_function"` and `finality: "final"` returns `result.result` as a byte array of the JSON return value; `get_request` for an unknown id returns `null`.
 - `block` with `finality: "final"` has `header.timestamp_nanosec` as a string. `header.timestamp` is a JSON number that cannot hold nanoseconds exactly, so the page ignores it.
 
-**Unverified:** explorer links default to `https://testnet.nearblocks.io/txns/{hash}` and `https://nearblocks.io/txns/{hash}` (override with `VITE_EXPLORER_TX_URL`). The suggested testnet RPC in `apps/web/.env.example` comes from the near-api-js README. Neither was reachable from the build environment.
+Explorer links default to `https://testnet.nearblocks.io/txns/{hash}` and `https://nearblocks.io/txns/{hash}` (override with `VITE_EXPLORER_TX_URL`); both patterns appear in the NEAR docs. Not reachable from the build environment.
+
+## Testnet (from the NEAR docs, `near/docs` @ `04d956c`, read 2026-10-24)
+
+| Topic | What the docs say | Source file |
+|---|---|---|
+| Testnet RPC | FASTNEAR `https://test.rpc.fastnear.com` (public, free tier); NEAR `https://archival-rpc.testnet.near.org` ("severely rate limited"); dRPC `https://near-testnet.drpc.org`; Intear `https://testnet-rpc.intea.rs` | `api/rpc/providers.mdx` |
+| Create an account | in a wallet from wallet.near.org (pick a `.testnet` account), or `near account create-account sponsor-by-faucet-service <name>.testnet autogenerate-new-keypair save-to-legacy-keychain network-config testnet create` | `getting-started/create-account.mdx`, `smart-contracts/quickstart.mdx`, `tools/cli.mdx` |
+| Testnet NEAR and tokens | the docs faucet (NEAR only) or near-faucet.io (NEAR, USDT and more); testnet Ref Finance for testnet USDC/USDT/DAI | `getting-started/faucet.mdx` |
+| Subaccounts | `near account create-account fund-myself <sub>.<parent> '<n> NEAR' autogenerate-new-keypair save-to-legacy-keychain sign-as <parent> network-config <net> sign-with-legacy-keychain send` | `web3-apps/tutorials/localnet/run.mdx` |
+| Deploy + init in one transaction | `near contract deploy <id> use-file <wasm> with-init-call <method> json-args '<json>' prepaid-gas '100.0 Tgas' attached-deposit '0 NEAR' network-config <net> sign-with-legacy-keychain send` | `tools/cli.mdx`, `primitives/ft/ft.mdx` |
+| Calls with a deposit | `near contract call-function as-transaction <id> <method> json-args '<json>' prepaid-gas '<n> Tgas' attached-deposit '1 yoctoNEAR' sign-as <account> network-config <net> sign-with-legacy-keychain send` | `tools/cli.mdx` |
+| Localnet with near-cli-rs | add a `[network_connection.localnet-sandbox]` block (`network_name = "localnet"`, `rpc_url`) to `near-cli/config.toml`; import `test.near` from the sandbox `validator_key.json` | `web3-apps/tutorials/localnet/run.mdx` |
+| Protocol versions | max gas per transaction is 1 PGas since protocol 83 (nearcore 2.11); features are documented up to protocol 88. No page states the live versions, so `scripts/deploy-testnet.sh` reads `protocol_version` from the RPC and refuses below 84. | `smart-contracts/anatomy/collections.mdx`, `protocol/accounts-contracts/gas-keys.mdx` |
+
+`scripts/deploy-testnet.sh` uses only these commands. `scripts/rehearse-deploy-sandbox.sh` runs it unchanged against a fresh local node; the faucet and wallet steps cannot be rehearsed there.
 
 ## GitHub Actions
 

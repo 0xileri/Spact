@@ -43,6 +43,8 @@ GitHub Actions `ci` run 1 (commit `8b91f83`) passed both jobs. The contracts job
 
 Measured: an auto payment (request + ft_transfer + callback) burnt about 7 Tgas in sandbox.
 
+Testnet deploy rehearsal (2026-10-24): `scripts/rehearse-deploy-sandbox.sh` ran `scripts/deploy-testnet.sh` unchanged with near-cli-rs 0.30.1 against a fresh sandbox node (protocol version 86). All six checks passed: vault owner and network set, the 3 TUSD request SETTLED, the 25 TUSD request AWAITING_APPROVAL, payee balance 3 TUSD, vault balance 997 TUSD. Commands come from the NEAR docs (`near/docs` @ `04d956c`, see INTEGRATIONS.md). Not covered: the faucet, the testnet network itself, and wallet signing.
+
 ## Unresolved risks
 
 - Eligibility of code written before 2026-11-01 (DECISIONS ADR-000).
@@ -53,6 +55,6 @@ Measured: an auto payment (request + ft_transfer + callback) burnt about 7 Tgas 
 
 ## Next smallest task
 
-Deploy the vault and mock token to NEAR testnet from a machine that can reach testnet RPC, record the contract ids, code hash and one settled auto-payment transaction here, then approve a payment from the approval page with a real testnet wallet.
+On a machine that can reach testnet: follow README "Deploy to testnet". Record the contract ids, code hash and the settled `demo-auto-1` transaction here, then approve `demo-approve-1` from the approval page with the owner's testnet wallet.
 
 After that, give the agent a function-call key on its own account scoped to the vault's `request_direct_payment` and `execute_request`, and add a sandbox test that the key cannot call anything else. The security track names function-call keys as a hint, and this makes the agent's key useless outside SpendPact.
