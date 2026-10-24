@@ -54,6 +54,26 @@ Facts taken from the crate sources, all exercised by passing tests:
 
 All versions were checked against `registry.npmjs.org` on 2026-10-23. The rule: newest release in the major line that is at least two weeks old.
 
+### Approval page (checked 2026-10-24)
+
+| Package | Pinned | Notes |
+|---|---|---|
+| `@hot-labs/near-connect` | 0.11.4 | Wallet connector; API read from its shipped `.d.ts`. `NearConnector({ network, features })`, `connect()`, `wallet.getAccounts()`, `wallet.signAndSendTransaction({ receiverId, actions })` with `{ type: "FunctionCall", params: { methodName, args, gas, deposit } }`. Network is only `mainnet` or `testnet`. Loads its wallet manifest from raw.githubusercontent.com at runtime. Chosen over `@near-wallet-selector/*` (last release 2025-12-04): zero dependencies and wallets run in sandboxed iframes. |
+| `near-api-js` | 7.2.0 | Dev signer and browser tests only. 7.3.0+ requires Node >= 22.22.2; the build machine has 22.22.0. `new Account(id, provider, "ed25519:...")`, `account.signAndSendTransaction({ receiverId, actions, throwOnFailure })`, `actions.functionCall(method, args, gas, deposit)`. |
+| `react` / `react-dom` | 19.3.0 | |
+| `vite` | 8.3.4 | Pinned at the root too, so vitest does not pull a second copy. Workspace packages resolve to TypeScript source through a `spendpact-source` export condition; Vitest needs it under `ssr.resolve.conditions`. |
+| `@vitejs/plugin-react` | 6.1.2 | requires vite ^8 |
+| `tailwindcss` / `@tailwindcss/vite` | 4.3.3 | |
+| `zod` | 4.6.5 | Gotcha: refinements still run after a failed `.regex`, so a `BigInt()` inside a refine must re-check the format first (caught by a unit test). |
+| `@playwright/test` | 1.63.0 | Matches the Chromium build preinstalled in the build container (`chromium-1243`). CI installs its own browser. |
+
+NEAR RPC facts the page relies on, observed against the sandbox node (2.13.4):
+
+- `query` with `request_type: "call_function"` and `finality: "final"` returns `result.result` as a byte array of the JSON return value; `get_request` for an unknown id returns `null`.
+- `block` with `finality: "final"` has `header.timestamp_nanosec` as a string. `header.timestamp` is a JSON number that cannot hold nanoseconds exactly, so the page ignores it.
+
+**Unverified:** explorer links default to `https://testnet.nearblocks.io/txns/{hash}` and `https://nearblocks.io/txns/{hash}` (override with `VITE_EXPLORER_TX_URL`). The suggested testnet RPC in `apps/web/.env.example` comes from the near-api-js README. Neither was reachable from the build environment.
+
 ## GitHub Actions
 
 `actions/checkout@v6`, `actions/setup-node@v6`, `pnpm/action-setup@v5` and `Swatinem/rust-cache@v2` exist and run on `node24` (checked via their `action.yml` on 2026-10-23).
@@ -74,7 +94,6 @@ expires_at_ns=1762000000000000000 policy_version=1
 | Integration | Status | Notes |
 |---|---|---|
 | NEAR Intents / 1Click | not started (P1) | AGENTS.md section 8 lists endpoints the owner researched on 2026-10-23. Not re-verified here because the hosts were blocked. AGENTS.md says there is no testnet version. |
-| NEAR wallet connector | not started | needed for the owner approval page |
 | Telegram Bot API | not started | |
 
 ## Hackathon submission (from `HACKATHON.md`, owner copy of 2026-10-23)

@@ -12,7 +12,7 @@ Unaudited hackathon prototype. This file maps each invariant from AGENTS.md sect
 | I4 | No replay | Unique id per vault; execution requires APPROVED; dispatch moves the request out of it | unit `t03_*`; sandbox `s2_*` | demonstrated |
 | I5 | Policy enforced on-chain | `check_new_request` and the `execute_request` rechecks | unit `t01`, `t11`, `t12`, pause tests | demonstrated |
 | I6 | Budget counts executed + in-flight | `dispatch` reserves before the promise; private callback settles once | unit `t04`, `t08`, `t10`, `t17`; sandbox `t04_parallel_*`, `t08_*` | demonstrated |
-| I7 | A human approves the exact request with a wallet | 1 yocto rules out function-call keys; hash binding; single use; expiry | sandbox `s2_*` (`DepositWithFunctionCall`); unit `t07_*` | contract side demonstrated; **approval UI not built** |
+| I7 | A human approves the exact request with a wallet | 1 yocto rules out function-call keys; hash binding; single use; expiry; the approval page hashes the terms it displays | sandbox `s2_*` (`DepositWithFunctionCall`); unit `t07_*`; browser e2e `forged terms with a matching forged hash are refused by the vault` | demonstrated on sandbox; **real-wallet signing on testnet not yet shown** |
 | I8 | Cross-chain honesty | No cross-chain route exists (`Route::NearDirect` only) | n/a | P1 not started |
 | I9 | Refund honesty | No cross-chain route exists | n/a | P1 not started |
 | I10 | Fail closed | Upfront gas check; every failure path panics or returns BLOCKED before state changes | unit `request_without_enough_gas_*`; sandbox `t08_*` | demonstrated for the paths that exist |
@@ -21,10 +21,10 @@ Unaudited hackathon prototype. This file maps each invariant from AGENTS.md sect
 
 ## Security Lab coverage (AGENTS.md section 10)
 
-| Test | Case | Unit | Sandbox |
+| Test | Case | Unit | Sandbox / browser |
 |---|---|---|---|
 | T01 | over hard cap | yes | yes |
-| T02 | change recipient or amount after approval | yes | wrong hash: yes |
+| T02 | change recipient or amount after approval | yes | wrong hash: yes; browser e2e: altered RPC data is flagged, and a forged consistent hash is refused by the vault |
 | T03 | replay | yes | yes |
 | T04 | parallel split against the daily budget | sequential | parallel txs: yes |
 | T05 | agent calls owner methods | yes | yes |
@@ -53,3 +53,14 @@ Unaudited hackathon prototype. This file maps each invariant from AGENTS.md sect
 - **The daily window is the UTC calendar day.** An agent can spend the full budget just before midnight and again just after. This is not a rolling 24-hour limit.
 - **Request reason text** is chosen by the agent and shown to the owner. It is covered by the hash, but it can still be used for social engineering. The UI must label it as agent-supplied.
 - **Blocked requests are not stored.** They exist only as events and return values.
+
+## Approval page (apps/web)
+
+The page reads the vault straight from a NEAR RPC endpoint and treats every response as untrusted (zod schemas in `@spendpact/shared`).
+
+- **What a lying RPC can do:** show wrong terms, a wrong status or wrong balances. It cannot make the owner approve different terms. The page hashes the terms it displays together with the network and vault id it is configured for, and the owner signs that hash. If the RPC also forges the hash, the vault compares it to what it stored and refuses with `HASH_MISMATCH`. Both cases are covered by browser tests that rewrite RPC responses in flight.
+- **What it can still do:** make the owner reject a legitimate request, or wait on a payment that was never made. Shown status is only as good as the RPC; use a trusted endpoint.
+- **Links for other vaults are refused.** The vault id comes from the build config, never from the URL.
+- **Wallets run in near-connect's sandboxed iframes.** The page never sees a key. The wallet code and manifest come from third parties (raw.githubusercontent.com, wallet hosts); that is a supply-chain dependency.
+- **The dev signer** (`apps/web/dev/dev-signer.ts`) holds the sandbox owner key and signs approve/reject/execute calls for the demo vault. It binds to 127.0.0.1, refuses to start unless the RPC is local, and the page refuses it on testnet and mainnet. It must never be pointed at a real network.
+- **Not done:** Content-Security-Policy and frame-ancestors headers depend on the host and are not set yet; clickjacking protection is therefore missing.
