@@ -6,6 +6,7 @@
   "description": "Types, reason codes, amount helpers and the request digest shared by SpendPact clients",
   "exports": {
     ".": {
+      "spendpact-source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
@@ -16,6 +17,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@noble/hashes": "2.4.0"
+    "@noble/hashes": "2.4.0",
+    "zod": "4.6.5"
   }
 }
