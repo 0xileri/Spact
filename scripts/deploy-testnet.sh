@@ -2,7 +2,9 @@
 # Deploys SpendPact to NEAR testnet with near-cli-rs:
 #   tusd.<parent>   test NEP-141 token (mock-ft, 6 decimals; no real value)
 #   vault.<parent>  SpendPact vault, owned by <owner>, deployed and initialized in one transaction
-#   agent.<parent>  the agent account (its key goes in your legacy keychain)
+#   agent.<parent>  the agent account. It gets a function-call key limited to request_direct_payment and
+#                   execute_request on the vault, saved to its own file for the agent runtime. The account's
+#                   full-access key stays in your keychain as the operator key; never give it to the agent.
 #   api.<parent>    the demo payee
 # then funds the vault and creates two demo requests: one paid automatically, one awaiting approval.
 #
@@ -14,14 +16,19 @@
 #
 # Run it once per deployer account: it stops if the subaccounts already exist.
 #
-# Commands follow docs.near.org (source: github.com/near/docs @ 04d956c, 2026-10-24). They were rehearsed
-# against a local sandbox, not testnet; see docs/STATUS.md.
+# Commands follow docs.near.org (source: github.com/near/docs @ 04d956c, 2026-10-24), except the flags of
+# `add-key grant-function-call-access`, which come from near-cli-rs 0.30.1 `--help` (the docs only show
+# grant-full-access). They were rehearsed against a local sandbox, not testnet; see docs/STATUS.md.
 #
 # Environment overrides:
 #   NETWORK_CONFIG  near-cli-rs connection name (default: testnet)
 #   NETWORK_LABEL   network string stored in the vault and used in request hashes (default: testnet)
 #   RPC_URL         RPC used for checks and printed for the web app (default: https://test.rpc.fastnear.com)
 #   VAULT_NEAR / TOKEN_NEAR / AGENT_NEAR / API_NEAR  initial balances (defaults 3.5 / 2.5 / 0.5 / 0.1)
+#   AGENT_ALLOWANCE  gas allowance of the agent's restricted key (default: 0.25 NEAR)
+#   NEAR_CREDENTIALS_DIR / NEAR_NETWORK_NAME  where near-cli's legacy keychain lives
+#                    (defaults: ~/.near-credentials and testnet)
+#   AGENT_KEY_FILE   where to write the agent's restricted key (default: <credentials>/spendpact/<agent>.json)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
@@ -35,6 +42,9 @@ TOKEN="tusd.$PARENT"
 AGENT="agent.$PARENT"
 API="api.$PARENT"
 UNIT=1000000 # 1 TUSD in base units (6 decimals)
+AGENT_METHODS='request_direct_payment, execute_request'
+KEYCHAIN="${NEAR_CREDENTIALS_DIR:-$HOME/.near-credentials}/${NEAR_NETWORK_NAME:-testnet}"
+AGENT_KEY_FILE="${AGENT_KEY_FILE:-${NEAR_CREDENTIALS_DIR:-$HOME/.near-credentials}/spendpact/$AGENT.json}"
 
 die() { echo "error: $*" >&2; exit 1; }
 step() { printf '\n==> %s\n' "$*" >&2; }
@@ -73,6 +83,19 @@ near contract deploy "$VAULT" use-file "$WASM_DIR/spendpact_vault.wasm" with-ini
   json-args "{\"owner\":\"$OWNER\",\"agents\":[\"$AGENT\"],\"network\":\"$LABEL\",\"policy\":$POLICY}" \
   prepaid-gas '100.0 Tgas' attached-deposit '0 NEAR' network-config "$NET" sign-with-legacy-keychain send
 
+step "Giving the agent a restricted key: only $AGENT_METHODS on $VAULT"
+# The docs describe `near generate-keypair`, but near-cli-rs 0.30.1 (latest stable) does not have it. So
+# add-key generates the key into the legacy keychain, and we pick out the one new file it writes there.
+before="$(ls "$KEYCHAIN/$AGENT" 2>/dev/null | sort || true)"
+near account add-key "$AGENT" grant-function-call-access --allowance "${AGENT_ALLOWANCE:-0.25 NEAR}" \
+  --contract-account-id "$VAULT" --function-names "$AGENT_METHODS" \
+  autogenerate-new-keypair save-to-legacy-keychain network-config "$NET" sign-with-legacy-keychain send
+new_key="$(comm -13 <(echo "$before") <(ls "$KEYCHAIN/$AGENT" | sort))"
+[ "$(printf '%s\n' "$new_key" | grep -c .)" = 1 ] || die "could not find the new key in $KEYCHAIN/$AGENT"
+mkdir -p "$(dirname "$AGENT_KEY_FILE")"
+install -m 600 "$KEYCHAIN/$AGENT/$new_key" "$AGENT_KEY_FILE"
+echo "agent's restricted key: $AGENT_KEY_FILE" >&2
+
 step "Registering token storage for the vault and the payee, then funding the vault with 1000 TUSD"
 for id in "$VAULT" "$API"; do
   near contract call-function as-transaction "$TOKEN" storage_deposit json-args "{\"account_id\":\"$id\"}" \
@@ -82,11 +105,12 @@ near contract call-function as-transaction "$TOKEN" ft_transfer \
   json-args "{\"receiver_id\":\"$VAULT\",\"amount\":\"$((1000 * UNIT))\"}" \
   prepaid-gas '30.0 Tgas' attached-deposit '1 yoctoNEAR' sign-as "$PARENT" network-config "$NET" sign-with-legacy-keychain send
 
-step "Agent requests: 3 TUSD (paid automatically) and 25 TUSD (waits for $OWNER)"
+step "Agent requests, signed with its restricted key: 3 TUSD (paid automatically) and 25 TUSD (waits for $OWNER)"
 request() {
   near contract call-function as-transaction "$VAULT" request_direct_payment \
     json-args "{\"request_id\":\"$1\",\"token\":\"$TOKEN\",\"amount\":\"$2\",\"recipient\":\"$API\",\"reason\":\"$3\"}" \
-    prepaid-gas '100.0 Tgas' attached-deposit '0 NEAR' sign-as "$AGENT" network-config "$NET" sign-with-legacy-keychain send
+    prepaid-gas '100.0 Tgas' attached-deposit '0 NEAR' sign-as "$AGENT" network-config "$NET" \
+    sign-with-access-key-file "$AGENT_KEY_FILE" send
 }
 request demo-auto-1 "$((3 * UNIT))" "Weather API: 1,000 calls"
 request demo-approve-1 "$((25 * UNIT))" "Weather API: monthly plan upgrade"
@@ -97,7 +121,9 @@ code_hash="$(rpc "{\"jsonrpc\":\"2.0\",\"id\":\"x\",\"method\":\"query\",\"param
 cat <<EOF
 vault      $VAULT (code hash $code_hash)
 token      $TOKEN
-agent      $AGENT (key in ~/.near-credentials)
+agent      $AGENT
+           restricted key ($AGENT_METHODS on $VAULT): $AGENT_KEY_FILE
+           full-access operator key: $KEYCHAIN/$AGENT.json (keep it away from the agent)
 payee      $API
 owner      $OWNER
 

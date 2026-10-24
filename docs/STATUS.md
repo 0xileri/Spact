@@ -31,11 +31,11 @@ Last updated 2026-10-24 (UTC). Network mode so far: **local sandbox only**. Noth
 
 | Command | Result |
 |---|---|
-| `scripts/test-contracts.sh` | vault unit 51 passed; mock-ft unit 1 passed; sandbox 8 passed |
+| `scripts/test-contracts.sh` | vault unit 51 passed; mock-ft unit 1 passed; sandbox 10 passed |
 | `cargo clippy --workspace --all-targets -- -D warnings` (in `contracts/`) | clean |
 | `cargo fmt --all --check` | clean |
 | `pnpm lint && pnpm typecheck && pnpm test && pnpm build` | clean; shared 14 passed, web 17 passed |
-| `pnpm e2e` (Chromium, local sandbox) | 7 passed: approve and pay, reject, altered recipient flagged, forged hash refused by the vault, non-owner blocked, foreign-vault link refused, open-request list |
+| `pnpm e2e` (Chromium, local sandbox; the agent signs with its function-call key) | 7 passed: approve and pay, reject, altered recipient flagged, forged hash refused by the vault, non-owner blocked, foreign-vault link refused, open-request list |
 
 Manual check on a testnet build: the near-connect wallet selector opens with no page errors and lists Meteor, Intear, Ledger, Nightly, Ethereum wallets and NEAR CLI (2026-10-24).
 
@@ -45,10 +45,13 @@ Measured: an auto payment (request + ft_transfer + callback) burnt about 7 Tgas 
 
 Testnet deploy rehearsal (2026-10-24): `scripts/rehearse-deploy-sandbox.sh` ran `scripts/deploy-testnet.sh` unchanged with near-cli-rs 0.30.1 against a fresh sandbox node (protocol version 86). All six checks passed: vault owner and network set, the 3 TUSD request SETTLED, the 25 TUSD request AWAITING_APPROVAL, payee balance 3 TUSD, vault balance 997 TUSD. Commands come from the NEAR docs (`near/docs` @ `04d956c`, see INTEGRATIONS.md). Not covered: the faucet, the testnet network itself, and wallet signing.
 
+Agent key (2026-10-24): the agent now signs with a function-call key that reaches only the vault's `request_direct_payment` and `execute_request` (DECISIONS ADR-017). Sandbox tests `t19_*` and `t20_*` show that it works for requests and execution, and that the protocol rejects everything else: other contracts, other vault methods, deposits, NEAR transfers, adding keys, deleting the account, and use after the allowance runs out. The rehearsal now runs the deploy script's own key step and passes ten checks: the key's receiver, methods and allowance, a refused NEAR transfer, and the six earlier ones. Two agent requests used 0.00092 NEAR of the 0.25 NEAR allowance.
+
 ## Unresolved risks
 
 - Eligibility of code written before 2026-11-01 (DECISIONS ADR-000).
 - The vault account's full-access key can redeploy the code (THREAT_MODEL).
+- On testnet the agent account's full-access key stays with the operator (ADR-017); the mainnet choice is open.
 - No reconciliation path for a stuck TRANSFER_PENDING; no storage pruning.
 - Testnet/mainnet protocol support for the rustc 1.97 wasm output is unverified.
 - The approval page has not signed with a real wallet yet; no CSP / frame-ancestors headers.
@@ -56,5 +59,4 @@ Testnet deploy rehearsal (2026-10-24): `scripts/rehearse-deploy-sandbox.sh` ran 
 ## Next smallest task
 
 On a machine that can reach testnet: follow README "Deploy to testnet". Record the contract ids, code hash and the settled `demo-auto-1` transaction here, then approve `demo-approve-1` from the approval page with the owner's testnet wallet.
-
-After that, give the agent a function-call key on its own account scoped to the vault's `request_direct_payment` and `execute_request`, and add a sandbox test that the key cannot call anything else. The security track names function-call keys as a hint, and this makes the agent's key useless outside SpendPact.
+Check that `view_access_key_list` for `agent.<name>.testnet` shows the function-call key, and keep the printed operator key file away from the agent runtime.

@@ -3,9 +3,9 @@
 //! Run `scripts/build-contracts.sh` first, then `cargo test -p integration-tests`.
 //! Test IDs (S1, T03, ...) refer to AGENTS.md sections 10 and 13.
 
-use integration_tests::{account, policy, setup, wasm, AGENT_GAS, ONE_YOCTO, UNIT};
+use integration_tests::{account, policy, setup, wasm, AGENT_GAS, AGENT_METHODS, ONE_YOCTO, UNIT};
 use near_workspaces::result::ExecutionFinalResult;
-use near_workspaces::types::{AccessKey, KeyType, NearToken, SecretKey};
+use near_workspaces::types::{AccessKey, AccessKeyPermission, KeyType, NearToken, SecretKey};
 use near_workspaces::Account;
 use serde_json::{json, Value};
 
@@ -300,5 +300,123 @@ async fn pause_blocks_payments_and_owner_can_recover_funds() -> anyhow::Result<(
         .into_result()?;
     assert_eq!(env.balance(env.vault.id()).await?, vault_before - 100 * UNIT);
     assert_eq!(env.balance(env.owner.id()).await?, owner_before + 100 * UNIT);
+    Ok(())
+}
+
+// ------------------------------------------------------------------ T19, T20 restricted agent key
+
+/// A transaction the protocol must refuse before any contract code runs.
+fn assert_rejected<T: std::fmt::Debug, E: std::fmt::Debug>(result: Result<T, E>, kind: &str) {
+    match result {
+        Ok(ok) => panic!("expected the protocol to reject it with {kind}, got {ok:?}"),
+        Err(err) => {
+            let msg = format!("{err:?}");
+            assert!(msg.contains(kind), "expected {kind}, got: {msg}");
+        }
+    }
+}
+
+/// The agent holds only a function-call key for two vault methods. That is all it needs, and the
+/// protocol refuses everything else the key might try, even with no contract checks at all.
+#[tokio::test]
+async fn t19_restricted_agent_key_can_only_request_and_execute() -> anyhow::Result<()> {
+    let env = setup().await?;
+    let agent = env.restrict_agent_key(NearToken::from_near(1)).await?;
+
+    let keys = agent.view_access_keys().await?;
+    assert_eq!(keys.len(), 1, "the full-access key is gone");
+    match &keys[0].access_key.permission {
+        AccessKeyPermission::FunctionCall(p) => {
+            assert_eq!(p.receiver_id, env.vault.id().as_str());
+            assert_eq!(p.method_names, AGENT_METHODS);
+            assert_eq!(p.allowance, Some(NearToken::from_near(1)));
+        }
+        other => panic!("expected a function-call key, got {other:?}"),
+    }
+
+    // What the agent is for still works.
+    let paid: Value =
+        env.request_signed(&agent, "fc-auto", 3 * UNIT, env.api.id(), "restricted key").await?.json()?;
+    assert_eq!(paid["status"], "SETTLED");
+    let waiting: Value =
+        env.request_signed(&agent, "fc-approve", 25 * UNIT, env.api.id(), "restricted key").await?.json()?;
+    assert_eq!(waiting["status"], "AWAITING_APPROVAL");
+    env.owner
+        .call(env.vault.id(), "approve_request")
+        .args_json(json!({ "request_id": "fc-approve", "request_hash": waiting["request_hash"] }))
+        .deposit(ONE_YOCTO)
+        .transact()
+        .await?
+        .into_result()?;
+    let executed: Value = agent
+        .call(env.vault.id(), "execute_request")
+        .args_json(json!({ "request_id": "fc-approve" }))
+        .gas(AGENT_GAS)
+        .transact()
+        .await?
+        .json()?;
+    assert_eq!(executed["status"], "SETTLED");
+    assert_eq!(env.balance(env.api.id()).await?, 28 * UNIT);
+
+    // Everything else is refused by the protocol.
+    let vault_tokens = env.balance(env.vault.id()).await?;
+    let mallory_near = env.mallory.view_account().await?.balance;
+    assert_rejected(
+        agent
+            .call(env.token.id(), "ft_balance_of")
+            .args_json(json!({ "account_id": agent.id() }))
+            .transact()
+            .await,
+        "ReceiverMismatch",
+    );
+    assert_rejected(
+        agent
+            .call(env.vault.id(), "expire_request")
+            .args_json(json!({ "request_id": "fc-approve" }))
+            .transact()
+            .await,
+        "MethodNameMismatch",
+    );
+    assert_rejected(
+        agent
+            .call(env.vault.id(), "set_paused")
+            .args_json(json!({ "paused": true }))
+            .deposit(ONE_YOCTO)
+            .transact()
+            .await,
+        "DepositWithFunctionCall",
+    );
+    assert_rejected(
+        agent.transfer_near(env.mallory.id(), NearToken::from_millinear(100)).await,
+        "RequiresFullAccess",
+    );
+    let attacker_key = SecretKey::from_random(KeyType::ED25519);
+    assert_rejected(
+        agent.batch(agent.id()).add_key(attacker_key.public_key(), AccessKey::full_access()).transact().await,
+        "RequiresFullAccess",
+    );
+    assert_rejected(
+        agent.batch(agent.id()).delete_account(env.mallory.id()).transact().await,
+        "RequiresFullAccess",
+    );
+
+    assert_eq!(env.balance(env.vault.id()).await?, vault_tokens);
+    assert_eq!(env.mallory.view_account().await?.balance, mallory_near);
+    assert_eq!(agent.view_access_keys().await?.len(), 1);
+    Ok(())
+}
+
+/// The allowance caps what the key can spend on gas. It is not a payment limit: the vault's
+/// budget is. A key whose allowance cannot cover one call's prepaid gas is refused outright.
+#[tokio::test]
+async fn t20_agent_key_allowance_caps_gas_spending() -> anyhow::Result<()> {
+    let env = setup().await?;
+    let agent = env.restrict_agent_key(NearToken::from_yoctonear(1)).await?;
+    assert_rejected(
+        env.request_signed(&agent, "no-gas", UNIT, env.api.id(), "too little allowance").await,
+        "NotEnoughAllowance",
+    );
+    assert!(env.get_request("no-gas").await?.is_null(), "nothing reached the vault");
+    assert_eq!(env.budget().await?, (0, 0));
     Ok(())
 }

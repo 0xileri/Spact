@@ -59,7 +59,7 @@ To watch the attacks fail, run `pnpm e2e`. It drives Chromium against the same l
 3. Create a **deployer** account. Its key lands in `~/.near-credentials`:
    `near account create-account sponsor-by-faucet-service <name>.testnet autogenerate-new-keypair save-to-legacy-keychain network-config testnet create`
    The script spends about 6.6 testnet NEAR. Contract code alone locks about 4.3 NEAR, at roughly 1 NEAR per 100 KB. Top up from https://docs.near.org/getting-started/faucet if needed.
-4. Run `scripts/deploy-testnet.sh <name>.testnet <owner>.testnet`. You see `protocol version N` (it refuses below 84), then one confirmation per step. It ends with the vault id, its code hash, and three `VITE_` lines.
+4. Run `scripts/deploy-testnet.sh <name>.testnet <owner>.testnet`. You see `protocol version N` (it refuses below 84), then one confirmation per step. It ends with the vault id, its code hash, the agent's key files, and three `VITE_` lines. The agent's two demo requests are signed with a function-call key that can call only `request_direct_payment` and `execute_request` on the vault. That key goes in `~/.near-credentials/spendpact/agent.<name>.testnet.json`. The agent account's full-access key stays in your keychain; don't give it to the agent.
 5. Put those lines in `apps/web/.env.local` and run `pnpm --filter @spendpact/web dev`. Open `http://localhost:5173/?request=demo-approve-1` and connect the owner wallet. Click **Approve and pay** and confirm in the wallet. You see **Confirmed on chain: approved and paid**, with a link to testnet.nearblocks.io.
 
 ## Run the tests
@@ -75,7 +75,7 @@ pnpm install --frozen-lockfile
 pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ```
 
-Expected: `51 passed` (vault unit), `1 passed` (mock token), `8 passed` (sandbox), `14 passed` (shared) and `17 passed` (web). The first sandbox run downloads the NEAR sandbox node binary.
+Expected: `51 passed` (vault unit), `1 passed` (mock token), `10 passed` (sandbox), `14 passed` (shared) and `17 passed` (web). The first sandbox run downloads the NEAR sandbox node binary.
 
 On testnet or mainnet the page uses a real wallet through near-connect. Configure it with `apps/web/.env.example`.
 
@@ -84,6 +84,7 @@ On testnet or mainnet the page uses a real wallet through near-connect. Configur
 - **NEAR smart contract** (Rust, near-sdk 5.29.1): policy, budgets, approvals, the request state machine
 - **NEP-141** fungible tokens: the vault pays with `ft_transfer` and checks the result in a private callback
 - **Access keys:** owner actions require 1 yoctoNEAR, which function-call keys cannot attach, so only a full-access (wallet) signature can approve or change policy. The protocol rejects the attempt with `DepositWithFunctionCall`, as a sandbox test shows.
+- **Function-call access keys:** the agent signs with a key that can call only the vault's `request_direct_payment` and `execute_request`. A leaked agent key cannot move NEAR, add keys or call anything else; sandbox tests show each protocol rejection.
 - **NEP-297 events** for every state change
 - **NEAR Connect** (`@hot-labs/near-connect`) for owner wallets on testnet and mainnet, with each wallet's code in a sandboxed iframe
 - **NEAR JSON-RPC**: the approval page reads the vault directly, with no backend in between
