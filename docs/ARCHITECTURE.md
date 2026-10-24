@@ -22,7 +22,10 @@ Status labels: **built** (code plus passing tests in this repo), **planned** (in
  OWNER BROWSER: approval page (apps/web) [built]
    reads vault + token over NEAR RPC -> hashes displayed terms -> wallet signs approve_request(id, hash)
 
- planned: API/indexer, Telegram notifier, MCP tool, 1Click adapter (P1)
+ AGENT HOST (Claude Code, Codex): MCP server (apps/mcp) [built]
+   request_payment / get_payment_status -> signs with the agent's function-call key
+
+ planned: API/indexer, Telegram notifier, 1Click adapter (P1)
 ```
 
 ## Vault contract (`contracts/spendpact-vault`) [built]
@@ -84,6 +87,23 @@ React 19 + Vite 8 + Tailwind 4. No backend: it reads the vault directly over NEA
 - **Local demo.** `scripts/dev-sandbox.sh` runs `demo-sandbox` (a Rust binary in `contracts/integration-tests` that deploys a funded vault on a local node), the dev signer and the dev server.
 - **Browser tests.** `apps/web/e2e`, Playwright + Chromium against that same local setup.
 
+## MCP server (`apps/mcp`) [built]
+
+A local stdio server for the agent's host, on `@modelcontextprotocol/server` 2.3.1 (ADR-018). Two tools:
+
+```text
+request_payment(token, amount_units, recipient, reason, request_id)
+  -> validate input (same rules as the vault)
+  -> preflight: view_access_key is a function-call key for the vault, limited to the agent methods;
+                get_config network and agent list match
+  -> sign request_direct_payment with that key, wait for FINAL
+  -> {policy_decision, onchain_status, reason_code, explanation, tx_hash, review_url?}
+get_payment_status(request_id)
+  -> get_request + final block time -> {source_status | NOT_FOUND, reason_code, expiry by chain time}
+```
+
+The same preflight runs at startup, and the server exits if it fails. Tool results use fixed sentences; the agent's `reason` text is never echoed back.
+
 ## Planned (not built)
 
 | Component | Role | Authority |
@@ -91,5 +111,4 @@ React 19 + Vite 8 + Tailwind 4. No backend: it reads the vault directly over NEA
 | Dashboard and Security Lab view | policy, history, test results | none: the owner's wallet signs |
 | API (Hono on Workers) | relay agent requests, index events, send notifications | none: on-chain state wins |
 | Telegram bot | notify the owner, deep-link to the approval page | none: a button tap cannot approve |
-| MCP server | `request_payment` and `get_payment_status` tools for the agent | the agent's restricted key only |
 | 1Click adapter (P1) | quote and owner-approved cross-chain route | trusted off-chain quote, disclosed |

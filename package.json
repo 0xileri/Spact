@@ -14,6 +14,7 @@
     "contracts:build": "scripts/build-contracts.sh",
     "contracts:test": "scripts/test-contracts.sh",
     "e2e": "pnpm --filter @spendpact/web e2e",
+    "mcp:sandbox": "pnpm --filter @spendpact/mcp test:sandbox",
     "dev:sandbox": "scripts/dev-sandbox.sh"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { finalBlockTimestampNs, RpcError, viewFunction } from "../src/near/rpc.js";
+import { finalBlockTimestampNs, RpcError, viewAccessKey, viewFunction } from "../src/rpc.js";
 
 function mockFetch(body: unknown, status = 200) {
   const text = typeof body === "string" ? body : JSON.stringify(body);
@@ -40,5 +40,35 @@ describe("finalBlockTimestampNs", () => {
     // raw JSON: the numeric timestamp cannot survive JSON.parse exactly, the string can
     mockFetch('{"jsonrpc":"2.0","id":"x","result":{"header":{"timestamp":1761996400123456789,"timestamp_nanosec":"1761996400123456789"}}}');
     await expect(finalBlockTimestampNs("http://rpc")).resolves.toBe(1_761_996_400_123_456_789n);
+  });
+});
+
+describe("viewAccessKey", () => {
+  const fc = { FunctionCall: { allowance: "250000000000000000000000", receiver_id: "vault.test.near", method_names: ["request_direct_payment"] } };
+
+  it("describes function-call keys and reports other kinds by name", async () => {
+    const fetchMock = mockFetch({ jsonrpc: "2.0", id: "x", result: { nonce: 5, permission: fc, block_height: 1 } });
+    await expect(viewAccessKey("http://rpc", "agent.test.near", "ed25519:abc")).resolves.toEqual({
+      kind: "FunctionCall",
+      receiverId: "vault.test.near",
+      methodNames: ["request_direct_payment"],
+      allowance: "250000000000000000000000",
+    });
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(init.body as string).params).toMatchObject({ request_type: "view_access_key", account_id: "agent.test.near", public_key: "ed25519:abc" });
+
+    mockFetch({ jsonrpc: "2.0", id: "x", result: { nonce: 5, permission: "FullAccess" } });
+    await expect(viewAccessKey("http://rpc", "a.near", "ed25519:abc")).resolves.toEqual({ kind: "FullAccess" });
+    mockFetch({ jsonrpc: "2.0", id: "x", result: { nonce: 5, permission: { GasKeyFunctionCall: { ...fc.FunctionCall, balance: "1", num_nonces: 8 } } } });
+    await expect(viewAccessKey("http://rpc", "a.near", "ed25519:abc")).resolves.toEqual({ kind: "Other", name: "GasKeyFunctionCall" });
+    mockFetch({ jsonrpc: "2.0", id: "x", result: { nonce: 5, permission: { FunctionCall: { ...fc.FunctionCall, receiver_id: "NOT AN ACCOUNT" } } } });
+    await expect(viewAccessKey("http://rpc", "a.near", "ed25519:abc")).resolves.toEqual({ kind: "Other", name: "FunctionCall" });
+  });
+
+  it("returns null for a key the account does not have", async () => {
+    mockFetch({ jsonrpc: "2.0", id: "x", error: { name: "HANDLER_ERROR", cause: { name: "UNKNOWN_ACCESS_KEY", info: {} }, data: "Access key for public key ed25519:abc has never been observed on the node" } });
+    await expect(viewAccessKey("http://rpc", "a.near", "ed25519:abc")).resolves.toBeNull();
+    mockFetch({ jsonrpc: "2.0", id: "x", error: { name: "HANDLER_ERROR", cause: { name: "UNKNOWN_ACCOUNT", info: {} }, data: "account a.near does not exist" } });
+    await expect(viewAccessKey("http://rpc", "a.near", "ed25519:abc")).rejects.toBeInstanceOf(RpcError);
   });
 });

@@ -95,6 +95,25 @@ Explorer links default to `https://testnet.nearblocks.io/txns/{hash}` and `https
 
 `scripts/deploy-testnet.sh` uses only these commands. `scripts/rehearse-deploy-sandbox.sh` runs it unchanged against a fresh local node; the faucet and wallet steps cannot be rehearsed there.
 
+## MCP (checked 2026-10-24)
+
+| Item | Pinned | Source |
+|---|---|---|
+| `@modelcontextprotocol/server`, `@modelcontextprotocol/client` (tests) | 2.3.1 | npm registry; README of `modelcontextprotocol/typescript-sdk` (main is v2, "the stable release line, implementing the 2026-07-28 MCP spec"; v1 `@modelcontextprotocol/sdk` 1.32.x gets fixes for at least six months after 2026-07-27) |
+
+Facts from the SDK docs at tag `@modelcontextprotocol/server@2.3.1`, all exercised by passing tests:
+
+- `registerTool(name, {title, description, inputSchema, outputSchema, annotations}, handler)` takes zod v4 object schemas. Arguments that fail the schema come back as an `isError: true` result before the handler runs (`docs/servers/tools.md`).
+- `serveStdio(factory)` from `@modelcontextprotocol/server/stdio` serves 2025-era clients by default (`docs/serving/stdio.md`, `docs/serving/legacy-clients.md`). stdout is the protocol channel, so all logging goes to stderr.
+- `InMemoryTransport.createLinkedPair()` connects an in-process client for tests; `StdioClientTransport` spawns the real process (`docs/testing.md`).
+
+Adding the server to a host:
+
+- Claude Code 2.1.310 (`claude mcp add --help`): `claude mcp add <name> -e KEY=value -- <command> [args...]`. With an isolated `CLAUDE_CONFIG_DIR`, `claude mcp list` reported the sandbox server as `Connected` (2026-10-24).
+- Codex (`openai/codex` @ `970111f`, `codex-rs/cli/src/mcp_cmd.rs` and `codex-rs/cli/tests/mcp_add_remove.rs`): `codex mcp add <name> --env KEY=VALUE -- <command> [args...]`. Not run here: Codex is not installed in the build environment.
+
+near-api-js 7.2.0: `Account.signAndSendTransaction` waits for `EXECUTED_OPTIMISTIC` by default and accepts `waitUntil: "FINAL"`. It re-signs with a fresh nonce only after an `InvalidNonceError`, which means the first transaction was rejected. So a retry cannot run a request twice, and the vault also refuses duplicate ids.
+
 ## GitHub Actions
 
 `actions/checkout@v6`, `actions/setup-node@v6`, `pnpm/action-setup@v5` and `Swatinem/rust-cache@v2` exist and run on `node24` (checked via their `action.yml` on 2026-10-23).

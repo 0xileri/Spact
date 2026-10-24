@@ -20,16 +20,21 @@ A wallet key can spend everything. A NEAR function-call key restricts which meth
 | Piece | State |
 |---|---|
 | Vault contract (`contracts/spendpact-vault`) | built, 51 unit tests |
-| Real-chain tests on a NEAR sandbox node (`contracts/integration-tests`) | 8 passing: auto payment, approval flow, parallel split, failed transfer, private callback, agent bypass attempts, init front-run, pause/recovery |
-| Shared TS package: request hash, exact amounts, contract JSON schemas, reason codes (`packages/shared`) | built, 14 tests; hash matches Rust and an independent Python vector |
-| Owner approval page (`apps/web`) | built, 17 unit tests and 7 browser tests on a local chain, including a tampered RPC |
+| Real-chain tests on a NEAR sandbox node (`contracts/integration-tests`) | 10 passing: auto payment, approval flow, parallel split, failed transfer, private callback, agent bypass attempts, init front-run, pause/recovery, the agent's restricted key |
+| Shared TS package: request hash, exact amounts, contract JSON schemas, reason codes, RPC client (`packages/shared`) | built, 19 tests; hash matches Rust and an independent Python vector |
+| Owner approval page (`apps/web`) | built, 14 unit tests and 7 browser tests on a local chain, including a tampered RPC |
+| Agent MCP server for Claude Code / Codex (`apps/mcp`) | built, 24 unit tests and 11 tests over stdio on a local chain |
 | Local demo with no wallet or testnet needed (`scripts/dev-sandbox.sh`) | works |
 | Testnet deploy script (`scripts/deploy-testnet.sh`) | rehearsed on a local node; not run on testnet yet |
 | Signing with a real wallet | not yet |
-| Dashboard, Telegram, MCP tool | not yet (an open-request list exists) |
+| Dashboard, Telegram | not yet (an open-request list exists) |
 | NEAR Intents / 1Click cross-chain route | not yet (P1) |
 
 Details: [docs/STATUS.md](docs/STATUS.md). Security mapping: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
+
+## Let Claude Code or Codex pay
+
+`apps/mcp` is an MCP server with two tools, `request_payment` and `get_payment_status`. It signs with the agent's function-call key and refuses to start with a full-access key. `scripts/dev-sandbox.sh` prints the `claude mcp add` and `codex mcp add` commands for the local chain. Then ask the agent to pay `api.test.near` 5 TUSD (paid at once) or 20 TUSD (it gets an approval link and waits for you). Setup for testnet: [apps/mcp/README.md](apps/mcp/README.md).
 
 ## Try the approval flow locally
 
@@ -75,7 +80,7 @@ pnpm install --frozen-lockfile
 pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ```
 
-Expected: `51 passed` (vault unit), `1 passed` (mock token), `10 passed` (sandbox), `14 passed` (shared) and `17 passed` (web). The first sandbox run downloads the NEAR sandbox node binary.
+Expected: `51 passed` (vault unit), `1 passed` (mock token), `10 passed` (sandbox), `19 passed` (shared), `14 passed` (web) and `24 passed` (mcp). `pnpm mcp:sandbox` runs the MCP server over stdio against a local chain: `11 passed`. The first sandbox run downloads the NEAR sandbox node binary.
 
 On testnet or mainnet the page uses a real wallet through near-connect. Configure it with `apps/web/.env.example`.
 
@@ -88,6 +93,7 @@ On testnet or mainnet the page uses a real wallet through near-connect. Configur
 - **NEP-297 events** for every state change
 - **NEAR Connect** (`@hot-labs/near-connect`) for owner wallets on testnet and mainnet, with each wallet's code in a sandboxed iframe
 - **NEAR JSON-RPC**: the approval page reads the vault directly, with no backend in between
+- **MCP** (`@modelcontextprotocol/server`): the agent's tools, backed by its function-call key
 
 NEAR Intents is planned for a human-approved cross-chain payout (P1) and is not integrated yet.
 
@@ -97,7 +103,8 @@ NEAR Intents is planned for a human-approved cross-chain payout (P1) and is not 
 AGENTS.md                 canonical product + security spec (read first)
 contracts/                Rust workspace: vault, mock token, sandbox tests
 apps/web/                 owner approval page, dev signer, browser tests
-packages/shared/          TS types, request digest, amount helpers, JSON schemas
+apps/mcp/                 the agent's MCP server (stdio) and its sandbox tests
+packages/shared/          TS types, request digest, amount helpers, JSON schemas, RPC client
 scripts/                  build and test scripts
 docs/                     architecture, threat model, decisions, status, integrations
 ```

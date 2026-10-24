@@ -6,7 +6,7 @@ Unaudited hackathon prototype. This file maps each invariant from AGENTS.md sect
 
 | ID | Invariant | Enforcement point | Evidence | State |
 |---|---|---|---|---|
-| I1 | Funds sit in the vault; the agent has no vault key | Vault is its own account. The agent signs with a function-call key on its own account that only reaches the vault's `request_direct_payment` and `execute_request` (ADR-017) | sandbox `t18_agent_cannot_move_funds_outside_policy`, `t19_restricted_agent_key_can_only_request_and_execute`, `t20_agent_key_allowance_caps_gas_spending`; `scripts/rehearse-deploy-sandbox.sh` checks the key the deploy script creates | demonstrated (sandbox); **testnet not yet** |
+| I1 | Funds sit in the vault; the agent has no vault key | Vault is its own account. The agent signs with a function-call key on its own account that only reaches the vault's `request_direct_payment` and `execute_request` (ADR-017) | sandbox `t18_agent_cannot_move_funds_outside_policy`, `t19_restricted_agent_key_can_only_request_and_execute`, `t20_agent_key_allowance_caps_gas_spending`; `scripts/rehearse-deploy-sandbox.sh` checks the key the deploy script creates; the MCP server refuses to start with a full-access key (`apps/mcp` sandbox test `refuses to run with a full-access key`) | demonstrated (sandbox); **testnet not yet** |
 | I2 | Only the owner changes policy, pauses or approves | `assert_owner`: predecessor == owner and exactly 1 yocto attached | unit `t05_*`; sandbox `t18_*`, `s2_*` | demonstrated |
 | I3 | Payment terms are immutable and bound to the approval | No mutation method exists; `approve_request` recomputes the hash and requires a match | unit `t02_*`; sandbox `s2_*` (wrong hash) | demonstrated |
 | I4 | No replay | Unique id per vault; execution requires APPROVED; dispatch moves the request out of it | unit `t03_*`; sandbox `s2_*` | demonstrated |
@@ -40,13 +40,14 @@ Unaudited hackathon prototype. This file maps each invariant from AGENTS.md sect
 | T15 | wrong vault, network or policy version | yes | no |
 | T16 | direct call to the private callback | cannot be unit tested | yes |
 | T17 | retries never transfer twice | repeated callbacks: yes | no |
-| T18 | prompt-injected agent | n/a | agent key cannot bypass policy, and cannot call any other method or contract, move NEAR, add keys or delete the account: yes (no LLM or MCP yet) |
+| T18 | prompt-injected agent | n/a | agent key cannot bypass policy, and cannot call any other method or contract, move NEAR, add keys or delete the account: yes. Through the MCP server, a request whose reason claims the owner approved an unlisted account is BLOCKED with `RECIPIENT_NOT_ALLOWED` and that account receives nothing (`apps/mcp` sandbox test `T18`). No LLM in the loop yet. |
 
 ## Known limitations and trust assumptions
 
 - **Vault account key.** Whoever holds a full-access key to the vault account can redeploy the code and bypass every rule. For the demo the owner must hold it offline. Deleting the keys after deployment would lock the code permanently. Not decided (open question in DECISIONS.md).
 - **Agent operator key.** On testnet the agent account keeps its full-access key in the operator's keychain; only the agent runtime gets the function-call key (ADR-017). Whoever holds the full-access key controls the agent account and its NEAR, but still cannot move vault funds outside policy (I1, I2).
 - **Agent gas allowance.** The function-call key's allowance limits gas, not payments. A runaway agent can burn it with requests the vault blocks (blocked requests are not stored, so this costs the vault nothing). When it runs out the key stops working (sandbox `t20_*`), and only a full-access key can add a new one (`t19_*` shows the function-call key cannot).
+- **MCP host.** Anyone who can read the agent's key file, or drive the MCP host, can make requests as the agent. They are still bound by the vault policy and the key's gas allowance. The server only accepts a key file that other users cannot read.
 - **Owner wallet compromise** defeats everything. Out of scope, as AGENTS.md says.
 - **Allowlisted token contracts are trusted** to implement `ft_transfer` honestly and synchronously. A malicious token could report success without moving funds.
 - **Stuck reservation.** If the callback itself fails (it has 10 Tgas of static gas), the request stays TRANSFER_PENDING and its budget stays reserved. That fails closed, but there is no reconciliation method yet.

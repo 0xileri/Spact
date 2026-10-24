@@ -80,6 +80,17 @@ The agent's key can call only `request_direct_payment` and `execute_request` on 
 
 In sandbox tests `t19_*` and `t20_*` and in the local demo, the agent's full-access key is deleted. On testnet, `scripts/deploy-testnet.sh` adds the function-call key, writes it to a separate file for the agent runtime, and leaves the full-access key in the operator's keychain. The allowance is a gas budget that only goes down, and once it runs out only a full-access key can add a new key (NEAR docs, `protocol/accounts-contracts/access-keys.mdx`). Default allowance: 0.25 NEAR. In the deploy rehearsal, two requests (one paid, one waiting for approval) used 0.00092 NEAR of it. Whether to delete the full-access key on mainnet is open.
 
+## ADR-018: The agent's MCP server (2026-10-24)
+
+`apps/mcp` is a local stdio server with exactly the two tools AGENTS.md section 9 names.
+
+- **SDK:** `@modelcontextprotocol/server` 2.3.1, the v2 line the SDK repo calls stable. Over stdio it serves both 2025-era clients (`initialize`) and 2026-07-28 clients. 2.4.0 came out the day before this decision, so the pin is the previous release.
+- **Names:** `request_payment` and `get_payment_status`, without the `spendpact.` prefix in AGENTS.md. The server is named `spendpact`, and hosts already prefix tool names with the server name (Claude Code shows `mcp__spendpact__request_payment`).
+- **Key:** the server signs with the agent's function-call key (ADR-017). It reads the key's permission from chain at startup and before every request, and refuses a full-access key, a key for another contract, a key with extra methods, a vault on another network, or an agent the vault does not list. The vault enforces the policy regardless.
+- **Finality:** it waits for `FINAL` before answering, so a reported `SETTLED` is in final blocks. A sandbox test caught the earlier optimistic answer running ahead of final reads.
+- **Untrusted text:** tool results use fixed sentences and reason-code explanations. The agent's `reason` goes to the owner and is never echoed back to the model.
+- **No execute tool yet:** if the owner approves without paying (ADR-014, "Pay immediately" unticked), the agent cannot execute through MCP. The key allows `execute_request` for when that tool is added.
+
 ## Open questions (from AGENTS.md section 17)
 
 - [x] Official `HACKATHON.md`: added at the repo root (owner copy, 2026-10-23).
