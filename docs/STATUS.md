@@ -24,8 +24,8 @@ Last updated 2026-10-24 (UTC). Network mode so far: **local sandbox only**. Noth
 | 5 | larger payment awaits approval; Telegram notice | local tested: the notifier alerts on sandbox, then follows up when paid; **real Telegram delivery untested** (mock Bot API; api.telegram.org unreachable here) |
 | 6 | owner wallet approves the exact request; executes once | local tested in a real browser (sandbox, dev signer); wallet connector loads on a testnet build; **signing with a real wallet on testnet not yet done** |
 | 7 | dashboard | local tested in a real browser (sandbox): balance, budget, open requests and activity match the chain; inconsistent budget data from the RPC is flagged; no tx hashes (no indexer) |
-| 8 | Security Lab, at least 6 negative tests | local tested: generated report and page; 13 of 18 cases pass on a local chain, 3 in unit tests only, 2 are P1 (THREAT_MODEL.md); CI builds the report as an artifact; **not hosted yet** |
-| 9 | public app, README, video, submission | not started |
+| 8 | Security Lab, at least 6 negative tests | local tested: generated report and page; 13 of 18 cases pass on a local chain, 3 in unit tests only, 2 are P1 (THREAT_MODEL.md); CI builds the report and publishes it with the site to GitHub Pages from main (ADR-023); **first deploy waits for Pages to be turned on** |
+| 9 | public app, README, video, submission | public repo; GitHub Pages deploy set up (Security Lab only until a vault is deployed); README in progress; video and submission not started |
 
 ## Tests (last run 2026-10-24)
 
@@ -34,11 +34,11 @@ Last updated 2026-10-24 (UTC). Network mode so far: **local sandbox only**. Noth
 | `scripts/test-contracts.sh` | vault unit 51 passed; mock-ft unit 1 passed; sandbox 10 passed |
 | `cargo clippy --workspace --all-targets -- -D warnings` (in `contracts/`) | clean |
 | `cargo fmt --all --check` | clean |
-| `pnpm lint && pnpm typecheck && pnpm test && pnpm build` | clean; shared 19 passed, web 21 passed, mcp 24 passed, notifier 27 passed, security-lab 8 passed |
+| `pnpm lint && pnpm typecheck && pnpm test && pnpm build` | clean; shared 19 passed, web 23 passed, mcp 24 passed, notifier 27 passed, security-lab 8 passed |
 | `scripts/security-report.sh` (every suite, then the report) | 180 tests in 10 suites passed; report: 13 cases passed on a local chain, 3 unit only (T07, T10, T15), 2 not covered (T13, T14, P1) |
 | `pnpm notifier:sandbox` (built notifier, local sandbox, mock Bot API) | 4 passed: links only the private chat with the terminal's code (group, wrong code and forged button ignored); alert with exact terms and the approval page as the only link; follow-up after the owner approves and pays; after a restart no repeats, and a new request is alerted with the link in its note defanged |
 | `pnpm mcp:sandbox` (built MCP server over stdio, local sandbox) | 11 passed: two tools only; auto payment settles; larger request waits, then is paid after the owner approves; hard cap blocked; T18 prompt-injected request to an unlisted account blocked; duplicate id not paid twice; bad input sends nothing; startup refused with a full-access key, a key for another contract, or a missing key |
-| `pnpm e2e` (Chromium, local sandbox; the agent signs with its function-call key) | 12 passed: the Security Lab page shows cases, evidence and the CI run link; a report that contradicts its own evidence is not believed; a missing or broken report is named as such; dashboard matches the chain (balance, budget, waiting request, activity rows); a tampered budget is flagged instead of shown; approve and pay, reject, altered recipient flagged, forged hash refused by the vault, non-owner blocked, foreign-vault link refused, open-request list |
+| `pnpm e2e` (Chromium, local sandbox; the agent signs with its function-call key) | 14 passed: the production build under `/Spact/` with no vault serves the Security Lab, says no vault is connected elsewhere, and makes no request outside its own host; inside a frame neither site draws anything to click; the Security Lab page shows cases, evidence and the CI run link; a report that contradicts its own evidence is not believed; a missing or broken report is named as such; dashboard matches the chain (balance, budget, waiting request, activity rows); a tampered budget is flagged instead of shown; approve and pay, reject, altered recipient flagged, forged hash refused by the vault, non-owner blocked, foreign-vault link refused, open-request list |
 
 Manual check on a testnet build: the near-connect wallet selector opens with no page errors and lists Meteor, Intear, Ledger, Nightly, Ethereum wallets and NEAR CLI (2026-10-24).
 
@@ -47,6 +47,8 @@ GitHub Actions `ci` run 1 (commit `8b91f83`) passed both jobs. The contracts job
 Measured: an auto payment (request + ft_transfer + callback) burnt about 7 Tgas in sandbox.
 
 Testnet deploy rehearsal (2026-10-24): `scripts/rehearse-deploy-sandbox.sh` ran `scripts/deploy-testnet.sh` unchanged with near-cli-rs 0.30.1 against a fresh sandbox node (protocol version 86). All six checks passed: vault owner and network set, the 3 TUSD request SETTLED, the 25 TUSD request AWAITING_APPROVAL, payee balance 3 TUSD, vault balance 997 TUSD. Commands come from the NEAR docs (`near/docs` @ `04d956c`, see INTEGRATIONS.md). Not covered: the faucet, the testnet network itself, and wallet signing.
+
+GitHub Pages (2026-10-24): the `pages` job in `ci.yml` publishes the site from main after every job passed, with that run's Security Lab report (ADR-023). With no vault configured, the site is the Security Lab alone. The browser suite builds the site the same way and serves it under `/Spact/`. With the frame guard or `base: "./"` removed, the new tests fail. `actionlint` 1.7.12 passes the workflow. Not yet run on GitHub: Pages has to be turned on in the repository settings (source: GitHub Actions).
 
 Security Lab (2026-10-24): the approval site has a Security Lab page (`?page=security`) built from a report that is generated from real test runs (DECISIONS ADR-022). The full local run matched every catalog entry to a test that ran and passed. CI builds the same report from its jobs' artifacts.
 
@@ -67,7 +69,8 @@ Agent key (2026-10-24): the agent now signs with a function-call key that reache
 - On testnet the agent account's full-access key stays with the operator (ADR-017); the mainnet choice is open.
 - No reconciliation path for a stuck TRANSFER_PENDING; no storage pruning.
 - Testnet/mainnet protocol support for the rustc 1.97 wasm output is unverified.
-- The approval page has not signed with a real wallet yet; no CSP / frame-ancestors headers.
+- The approval page has not signed with a real wallet yet.
+- No Content-Security-Policy, and framing is refused by script rather than a `frame-ancestors` header, which GitHub Pages cannot send (ADR-023).
 
 ## Next smallest task
 

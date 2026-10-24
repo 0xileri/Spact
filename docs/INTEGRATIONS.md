@@ -138,6 +138,8 @@ Read from the installed sources, and exercised by `scripts/security-report.sh`:
 
 `actions/checkout@v6`, `actions/setup-node@v6`, `pnpm/action-setup@v5` and `Swatinem/rust-cache@v2` exist and run on `node24` (checked via their `action.yml` on 2026-10-23).
 
+GitHub Pages (checked 2026-10-24 via `git ls-remote` tags and each `action.yml`): `actions/configure-pages@v6` (node24; it cannot enable Pages with `GITHUB_TOKEN`, its `enablement` input needs another token), `actions/upload-pages-artifact@v5` (input `path`; it tars the folder, skips dot files, and uploads it as the `github-pages` artifact with `upload-artifact` v7), `actions/deploy-pages@v5` (node24; output `page_url`). The `deploy-pages` README asks for `pages: write`, `id-token: write` and the `github-pages` environment. `download-artifact` v8 extracts a single artifact fetched by name straight into `path` (its README).
+
 ## Request digest test vector
 
 Computed independently with Python `hashlib` and asserted in both `contracts/spact-vault/src/tests.rs` and `packages/shared/test/digest.test.ts`:
