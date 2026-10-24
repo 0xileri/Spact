@@ -58,6 +58,22 @@ The owner's client hashes the terms it displays and passes that hash to `approve
 
 `HACKATHON.md` requires explicit human confirmation before the agent submits, posts on X, makes the repo public, pushes, signs transactions, spends tokens or deploys to mainnet. This matches AGENTS.md. The owner approved pushes to the open PR branch while the agent watches it; everything else on that list still needs a fresh yes.
 
+## ADR-013: The approval page reads the chain directly (2026-10-24)
+
+There is no backend yet, and the approval page does not need one: it calls view methods over RPC and validates the JSON. It hashes the displayed terms with the network and vault id from its own build config, not from the RPC. A compromised RPC can mislead the owner about state, but cannot get them to approve different terms (THREAT_MODEL, approval page section).
+
+## ADR-014: Approve and pay in one transaction by default (2026-10-24)
+
+The page sends `approve_request` (1 yocto) and `execute_request` as two actions in one transaction, so the owner signs once. If execution fails (paused, budget), the whole transaction reverts, including the approval. Unticking "Pay immediately" sends only the approval, and the agent executes later.
+
+## ADR-015: near-connect for wallets, a local dev signer for sandbox (2026-10-24)
+
+`@hot-labs/near-connect` runs each wallet's code in a sandboxed iframe and has no dependencies. Wallets do not support a local sandbox, so sandbox uses `apps/web/dev/dev-signer.ts`: it holds the sandbox owner key in a separate local process, binds to 127.0.0.1, refuses non-local RPCs, and signs only approve/reject/execute calls to the demo vault with at most 1 yocto. The page refuses `VITE_DEV_SIGNER_URL` outside sandbox.
+
+## ADR-016: Every sandbox account gets its own random key (2026-10-24)
+
+near-workspaces gives every subaccount the same deterministic key unless one is passed. The PR #1 tests still proved the contract checks the predecessor account, but with shared keys the agent's key could also sign as the owner. `integration_tests::account` now creates each account with `SecretKey::from_random`.
+
 ## Open questions (from AGENTS.md section 17)
 
 - [x] Official `HACKATHON.md`: added at the repo root (owner copy, 2026-10-23).
@@ -69,5 +85,7 @@ The owner's client hashes the terms it displays and passes that hash to `approve
 - [ ] Storage pruning for terminal requests.
 - [ ] 1Click quote authenticity and deposit semantics (P1).
 - [ ] Telegram chat binding flow.
+- [ ] Hosting for the approval page, with CSP and frame-ancestors headers.
+- [ ] A trusted RPC endpoint for testnet/mainnet.
 - [ ] License (MIT or Apache-2.0).
 - [ ] NEAR payout account and project description for the form (owner-provided).

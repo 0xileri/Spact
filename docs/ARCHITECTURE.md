@@ -19,7 +19,10 @@ Status labels: **built** (code plus passing tests in this repo), **planned** (in
                                                              |
                                                          recipient
 
- planned: web approval page, API/indexer, Telegram notifier, MCP tool, 1Click adapter (P1)
+ OWNER BROWSER: approval page (apps/web) [built]
+   reads vault + token over NEAR RPC -> hashes displayed terms -> wallet signs approve_request(id, hash)
+
+ planned: API/indexer, Telegram notifier, MCP tool, 1Click adapter (P1)
 ```
 
 ## Vault contract (`contracts/spendpact-vault`) [built]
@@ -61,11 +64,31 @@ A wrapper around `near-contract-standards` `FungibleToken`. It exists so tests u
 
 Contract JSON types, reason codes with user-facing text, exact BigInt amount parsing, and the request digest. This is what the approval page will use to hash the terms it displays.
 
+## Approval page (`apps/web`) [built]
+
+React 19 + Vite 8 + Tailwind 4. No backend: it reads the vault directly over NEAR JSON-RPC (`get_config`, `get_policy`, `get_request`, `get_budget`, token `ft_metadata`, latest final block time) and validates every response with the zod schemas in `@spendpact/shared`.
+
+```text
+?request=<id>  -> loadSnapshot -> assess():
+                    vault id + network match this deployment's config
+                    request open, not expired, same policy version
+                    hash(displayed terms, configured network, configured vault) == stored hash
+                    connected account == vault owner
+                    (pay now) not paused, enough budget left today
+               -> signer.signAndSend(vault, [approve_request(id, hash) + 1 yocto, execute_request(id)?])
+               -> poll get_request until the chain shows the result; only then report success
+```
+
+- **Signers.** testnet/mainnet: `@hot-labs/near-connect` (wallets run in sandboxed iframes). sandbox: `dev/dev-signer.ts`, a localhost process holding the sandbox owner key that signs only approve/reject/execute on the demo vault.
+- **Routes.** `/` lists open requests; `/?request=<id>` is the approval page (the Telegram deep link target). A `vault=` parameter that differs from the configured vault is refused.
+- **Local demo.** `scripts/dev-sandbox.sh` runs `demo-sandbox` (a Rust binary in `contracts/integration-tests` that deploys a funded vault on a local node), the dev signer and the dev server.
+- **Browser tests.** `apps/web/e2e`, Playwright + Chromium against that same local setup.
+
 ## Planned (not built)
 
 | Component | Role | Authority |
 |---|---|---|
-| Web app (React/Vite) | dashboard, approval page, Security Lab view | none: the owner's wallet signs |
+| Dashboard and Security Lab view | policy, history, test results | none: the owner's wallet signs |
 | API (Hono on Workers) | relay agent requests, index events, send notifications | none: on-chain state wins |
 | Telegram bot | notify the owner, deep-link to the approval page | none: a button tap cannot approve |
 | MCP server | `request_payment` and `get_payment_status` tools for the agent | the agent's restricted key only |

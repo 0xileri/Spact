@@ -12,7 +12,9 @@
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",
     "contracts:build": "scripts/build-contracts.sh",
-    "contracts:test": "scripts/test-contracts.sh"
+    "contracts:test": "scripts/test-contracts.sh",
+    "e2e": "pnpm --filter @spendpact/web e2e",
+    "dev:sandbox": "scripts/dev-sandbox.sh"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -20,6 +22,7 @@
     "eslint": "10.12.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.1",
+    "vite": "8.3.4",
     "vitest": "5.0.3"
   }
 }
