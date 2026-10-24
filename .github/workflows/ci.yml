@@ -58,6 +58,8 @@ jobs:
       - run: pnpm --filter @spendpact/web exec playwright install --with-deps chromium
       # local sandbox chain + dev signer + approval page, driven by Chromium
       - run: pnpm e2e
+      # the agent's MCP server over stdio, against its own sandbox chain
+      - run: pnpm mcp:sandbox
       - uses: actions/upload-artifact@v6
         if: failure()
         with:

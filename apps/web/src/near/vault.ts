@@ -1,9 +1,11 @@
 import {
   budgetViewSchema,
   configViewSchema,
+  finalBlockTimestampNs,
   ftMetadataSchema,
   paymentRequestSchema,
   policySchema,
+  viewFunction,
   type BudgetView,
   type ConfigView,
   type FtMetadata,
@@ -12,7 +14,6 @@ import {
 } from "@spendpact/shared";
 
 import type { AppConfig } from "../config.js";
-import { finalBlockTimestampNs, viewFunction } from "./rpc.js";
 
 /** Everything the approval page needs, read from chain in one go. */
 export interface VaultSnapshot {

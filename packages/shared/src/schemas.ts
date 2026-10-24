@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { REASON_CODES, type ReasonCode } from "./reasonCodes.js";
-import type { BudgetView, ConfigView, PaymentRequest, Policy, TokenPolicy } from "./types.js";
+import type { BudgetView, ConfigView, PaymentOutcome, PaymentRequest, Policy, TokenPolicy } from "./types.js";
 
 /**
  * Runtime validation for JSON returned by the vault and token contracts. Anything read over RPC
@@ -59,6 +59,18 @@ export const paymentRequestSchema: z.ZodType<PaymentRequest> = z.object({
   updated_at_ns: u64String,
 });
 
+/** Return value of request_direct_payment, approve_request, reject_request and the transfer callback. */
+export const paymentOutcomeSchema: z.ZodType<PaymentOutcome> = z.object({
+  // blocked outcomes echo the id, or "<invalid>" when it was malformed
+  request_id: z.string().min(1).max(64),
+  status,
+  reason_code: reasonCode,
+  request_hash: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/, "not a sha256 hex digest")
+    .nullable(),
+});
+
 const tokenPolicySchema: z.ZodType<TokenPolicy> = z.object({
   token: accountId,
   auto_limit: u128String,
@@ -106,3 +118,34 @@ export const ftMetadataSchema: z.ZodType<FtMetadata> = z
     decimals: z.number().int().min(0).max(24),
   })
   .loose();
+
+/**
+ * An access key's permission as `view_access_key` reports it. Only plain function-call keys are
+ * described in detail; full-access keys, gas keys and anything newer are reported by kind.
+ */
+export type AccessKeyPermission =
+  | { kind: "FullAccess" }
+  | { kind: "FunctionCall"; receiverId: string; methodNames: string[]; allowance: string | null }
+  | { kind: "Other"; name: string };
+
+const functionCallPermissionSchema = z.object({
+  FunctionCall: z.object({
+    allowance: u128String.nullable(),
+    receiver_id: accountId,
+    method_names: z.array(z.string().max(256)).max(256),
+  }),
+});
+
+export function parseAccessKeyPermission(raw: unknown): AccessKeyPermission {
+  if (raw === "FullAccess") return { kind: "FullAccess" };
+  const fc = functionCallPermissionSchema.safeParse(raw);
+  if (fc.success) {
+    const { receiver_id, method_names, allowance } = fc.data.FunctionCall;
+    return { kind: "FunctionCall", receiverId: receiver_id, methodNames: method_names, allowance };
+  }
+  if (typeof raw === "string") return { kind: "Other", name: raw.slice(0, 64) };
+  if (typeof raw === "object" && raw !== null && !Array.isArray(raw)) {
+    return { kind: "Other", name: (Object.keys(raw)[0] ?? "unknown").slice(0, 64) };
+  }
+  return { kind: "Other", name: "unknown" };
+}

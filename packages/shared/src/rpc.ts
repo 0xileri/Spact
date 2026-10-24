@@ -3,11 +3,15 @@
  * decoded JSON with the schemas in @spendpact/shared.
  */
 
+import { parseAccessKeyPermission, type AccessKeyPermission } from "./schemas.js";
+
 export class RpcError extends Error {
   constructor(
     message: string,
     /** Contract-level error text (e.g. a panic message), when the RPC reported one. */
     readonly contractError?: string,
+    /** The RPC's error cause name, e.g. UNKNOWN_ACCESS_KEY. */
+    readonly causeName?: string,
   ) {
     super(message);
   }
@@ -35,7 +39,8 @@ async function call(rpcUrl: string, method: string, params: unknown): Promise<un
   if (body.error !== undefined) {
     const err = isRecord(body.error) ? body.error : {};
     const detail = typeof err.data === "string" ? err.data : JSON.stringify(err.cause ?? err.message ?? err);
-    throw new RpcError(`RPC error: ${detail}`, typeof err.data === "string" ? err.data : undefined);
+    const causeName = isRecord(err.cause) && typeof err.cause.name === "string" ? err.cause.name : undefined;
+    throw new RpcError(`RPC error: ${detail}`, typeof err.data === "string" ? err.data : undefined, causeName);
   }
   return body.result;
 }
@@ -70,6 +75,35 @@ export async function viewFunction(
   } catch {
     throw new RpcError(`${methodName}: result is not JSON`);
   }
+}
+
+/** Permission of one access key, or null when the account has no such key. */
+export async function viewAccessKey(
+  rpcUrl: string,
+  accountId: string,
+  publicKey: string,
+): Promise<AccessKeyPermission | null> {
+  let result: unknown;
+  try {
+    result = await call(rpcUrl, "query", {
+      request_type: "view_access_key",
+      finality: "final",
+      account_id: accountId,
+      public_key: publicKey,
+    });
+  } catch (e) {
+    if (e instanceof RpcError && e.causeName === "UNKNOWN_ACCESS_KEY") return null;
+    throw e;
+  }
+  // older nodes report a missing key as a result with an error string
+  if (isRecord(result) && typeof result.error === "string") {
+    if (/does not exist|never been observed/i.test(result.error)) return null;
+    throw new RpcError("view_access_key failed", result.error);
+  }
+  if (!isRecord(result) || !("permission" in result)) {
+    throw new RpcError("view_access_key: unexpected RPC response shape");
+  }
+  return parseAccessKeyPermission(result.permission);
 }
 
 /** Timestamp of the latest final block, in nanoseconds. Used instead of the local clock. */
