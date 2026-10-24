@@ -10,7 +10,8 @@ use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
 
 use anyhow::Context;
-use integration_tests::{setup, UNIT};
+use integration_tests::{setup, AGENT_METHODS, UNIT};
+use near_workspaces::types::NearToken;
 use serde_json::json;
 use tokio::signal::unix::{signal, SignalKind};
 
@@ -21,11 +22,13 @@ async fn main() -> anyhow::Result<()> {
     let path = std::env::args().nth(1).context("usage: demo-sandbox <fixture.json>")?;
 
     let env = setup().await?;
+    // The agent keeps only a function-call key for two vault methods (see AGENTS.md I1).
+    let agent = env.restrict_agent_key(NearToken::from_near(1)).await?;
     // One payment the policy settled on its own, and one waiting for the owner.
-    env.request_with_reason("demo-auto-1", 3 * UNIT, env.api.id(), "Weather API: 1,000 calls")
+    env.request_signed(&agent, "demo-auto-1", 3 * UNIT, env.api.id(), "Weather API: 1,000 calls")
         .await?
         .into_result()?;
-    env.request_with_reason(DEMO_REQUEST, 25 * UNIT, env.api.id(), "Weather API: monthly plan upgrade")
+    env.request_signed(&agent, DEMO_REQUEST, 25 * UNIT, env.api.id(), "Weather API: monthly plan upgrade")
         .await?
         .into_result()?;
 
@@ -37,8 +40,9 @@ async fn main() -> anyhow::Result<()> {
         "token_id": env.token.id(),
         "owner_id": env.owner.id(),
         "owner_secret_key": env.owner.secret_key().to_string(),
-        "agent_id": env.agent.id(),
-        "agent_secret_key": env.agent.secret_key().to_string(),
+        "agent_id": agent.id(),
+        "agent_secret_key": agent.secret_key().to_string(),
+        "agent_key": format!("function-call key: {} on {}, 1 NEAR gas allowance", AGENT_METHODS.join(", "), env.vault.id()),
         "api_id": env.api.id(),
         "mallory_id": env.mallory.id(),
         "demo_request_id": DEMO_REQUEST,

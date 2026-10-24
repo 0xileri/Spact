@@ -74,6 +74,12 @@ The page sends `approve_request` (1 yocto) and `execute_request` as two actions 
 
 near-workspaces gives every subaccount the same deterministic key unless one is passed. The PR #1 tests still proved the contract checks the predecessor account, but with shared keys the agent's key could also sign as the owner. `integration_tests::account` now creates each account with `SecretKey::from_random`.
 
+## ADR-017: The agent signs with a function-call key limited to two vault methods (2026-10-24)
+
+The agent's key can call only `request_direct_payment` and `execute_request` on the vault. The contract already checks the caller (I2, I5); the key adds a protocol-level limit, so a leaked agent key cannot transfer NEAR, add keys, delete the account, attach the 1 yocto owner methods need, or call any other contract or vault method (sandbox `t19_*`).
+
+In sandbox tests `t19_*` and `t20_*` and in the local demo, the agent's full-access key is deleted. On testnet, `scripts/deploy-testnet.sh` adds the function-call key, writes it to a separate file for the agent runtime, and leaves the full-access key in the operator's keychain. The allowance is a gas budget that only goes down, and once it runs out only a full-access key can add a new key (NEAR docs, `protocol/accounts-contracts/access-keys.mdx`). Default allowance: 0.25 NEAR. In the deploy rehearsal, two requests (one paid, one waiting for approval) used 0.00092 NEAR of it. Whether to delete the full-access key on mainnet is open.
+
 ## Open questions (from AGENTS.md section 17)
 
 - [x] Official `HACKATHON.md`: added at the repo root (owner copy, 2026-10-23).
@@ -81,6 +87,7 @@ near-workspaces gives every subaccount the same deterministic key unless one is 
 - [ ] Demo stablecoin on testnet/mainnet: token id, decimals, storage behavior, 1Click support.
 - [ ] Testnet/mainnet protocol version >= 84 for rustc 1.97 output (see INTEGRATIONS.md).
 - [ ] Vault account key policy: keep offline, delete after deploy, or a controlled upgrade path.
+- [ ] Agent account full-access key on mainnet: keep offline (testnet choice, ADR-017) or delete it and plan allowance top-ups.
 - [ ] Reconciliation for a stuck TRANSFER_PENDING (callback out of gas).
 - [ ] Storage pruning for terminal requests.
 - [ ] 1Click quote authenticity and deposit semantics (P1).

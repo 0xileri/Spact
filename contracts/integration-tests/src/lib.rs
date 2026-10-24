@@ -6,13 +6,15 @@
 use near_workspaces::network::Sandbox;
 use near_workspaces::operations::Function;
 use near_workspaces::result::ExecutionFinalResult;
-use near_workspaces::types::{Gas, KeyType, NearToken, SecretKey};
+use near_workspaces::types::{AccessKey, Gas, KeyType, NearToken, SecretKey};
 use near_workspaces::{Account, AccountId, Contract, Worker};
 use serde_json::{json, Value};
 
 pub const UNIT: u128 = 1_000_000; // 6-decimal test token
 pub const ONE_YOCTO: NearToken = NearToken::from_yoctonear(1);
 pub const AGENT_GAS: Gas = Gas::from_tgas(100);
+/// The only vault methods the agent's restricted key may call.
+pub const AGENT_METHODS: [&str; 2] = ["request_direct_payment", "execute_request"];
 
 pub fn wasm(name: &str) -> Vec<u8> {
     let path = format!("{}/../target/wasm32-unknown-unknown/release/{name}.wasm", env!("CARGO_MANIFEST_DIR"));
@@ -140,8 +142,19 @@ impl Deployment {
         recipient: &AccountId,
         reason: &str,
     ) -> anyhow::Result<ExecutionFinalResult> {
-        Ok(self
-            .agent
+        self.request_signed(&self.agent, id, amount, recipient, reason).await
+    }
+
+    /// `request_direct_payment` signed by `signer`, e.g. the agent's restricted key.
+    pub async fn request_signed(
+        &self,
+        signer: &Account,
+        id: &str,
+        amount: u128,
+        recipient: &AccountId,
+        reason: &str,
+    ) -> anyhow::Result<ExecutionFinalResult> {
+        Ok(signer
             .call(self.vault.id(), "request_direct_payment")
             .args_json(json!({
                 "request_id": id,
@@ -153,6 +166,26 @@ impl Deployment {
             .gas(AGENT_GAS)
             .transact()
             .await?)
+    }
+
+    /// Gives the agent a function-call key that can only call [`AGENT_METHODS`] on the vault and
+    /// spend at most `allowance` on gas, and deletes the agent's full-access key in the same
+    /// transaction. Returns the agent signing with the new key; `self.agent` no longer works after
+    /// this. On a real network keep the full-access key offline instead: once a function-call
+    /// key's allowance runs out, only a full-access key can add a new one.
+    pub async fn restrict_agent_key(&self, allowance: NearToken) -> anyhow::Result<Account> {
+        let key = SecretKey::from_random(KeyType::ED25519);
+        self.agent
+            .batch(self.agent.id())
+            .add_key(
+                key.public_key(),
+                AccessKey::function_call_access(self.vault.id(), &AGENT_METHODS, Some(allowance)),
+            )
+            .delete_key(self.agent.secret_key().public_key())
+            .transact()
+            .await?
+            .into_result()?;
+        Ok(Account::from_secret_key(self.agent.id().clone(), key, &self.worker))
     }
 
     pub async fn get_request(&self, id: &str) -> anyhow::Result<Value> {

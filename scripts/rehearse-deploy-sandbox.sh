@@ -51,21 +51,45 @@ fs.writeFileSync(`${process.argv[2]}/${k.account_id}.json`, JSON.stringify({ acc
 near account create-account fund-myself owner.test.near '5 NEAR' autogenerate-new-keypair save-to-legacy-keychain \
   sign-as test.near network-config localnet-sandbox sign-with-legacy-keychain send
 
-NETWORK_CONFIG=localnet-sandbox NETWORK_LABEL=sandbox RPC_URL="$RPC" "$ROOT/scripts/deploy-testnet.sh" test.near owner.test.near
+AGENT_KEY_FILE="$WORK/agent-function-call-key.json"
+NETWORK_CONFIG=localnet-sandbox NETWORK_LABEL=sandbox RPC_URL="$RPC" \
+  NEAR_CREDENTIALS_DIR="$WORK/.near-credentials" NEAR_NETWORK_NAME=localnet AGENT_KEY_FILE="$AGENT_KEY_FILE" \
+  "$ROOT/scripts/deploy-testnet.sh" test.near owner.test.near
+
+echo
+echo "==> Checking that the agent's restricted key cannot move NEAR"
+if near tokens agent.test.near send-near owner.test.near '0.1 NEAR' network-config localnet-sandbox \
+  sign-with-access-key-file "$AGENT_KEY_FILE" send >"$WORK/transfer.log" 2>&1; then
+  echo "FAIL restricted key sent NEAR" >&2
+  exit 1
+fi
+# near-cli's wording of the RequiresFullAccess error.
+grep -q "requires a full permission access key" "$WORK/transfer.log" \
+  || { cat "$WORK/transfer.log" >&2; echo "FAIL unexpected error" >&2; exit 1; }
+echo "PASS transfer rejected: requires a full permission access key"
 
 echo
 echo "==> Checking chain state"
 node --input-type=module -e '
-const rpc = process.argv[1];
-async function view(contract, method, args) {
-  const res = await fetch(rpc, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({
-    jsonrpc: "2.0", id: "x", method: "query",
-    params: { request_type: "call_function", finality: "final", account_id: contract, method_name: method,
-              args_base64: Buffer.from(JSON.stringify(args)).toString("base64") } }) });
-  const body = await res.json();
-  return JSON.parse(Buffer.from(body.result.result).toString());
+const [rpc, keyFile] = process.argv.slice(1);
+async function query(params) {
+  const res = await fetch(rpc, { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: "x", method: "query", params: { finality: "final", ...params } }) });
+  return (await res.json()).result;
 }
+async function view(contract, method, args) {
+  const result = await query({ request_type: "call_function", account_id: contract, method_name: method,
+    args_base64: Buffer.from(JSON.stringify(args)).toString("base64") });
+  return JSON.parse(Buffer.from(result.result).toString());
+}
+const agentKey = JSON.parse((await import("fs")).readFileSync(keyFile, "utf8")).public_key;
+const keys = (await query({ request_type: "view_access_key_list", account_id: "agent.test.near" })).keys;
+const fc = keys.find((k) => k.public_key === agentKey)?.access_key.permission.FunctionCall;
+console.log(`agent key allowance left after two requests: ${fc?.allowance} yoctoNEAR`);
 const checks = [
+  ["agent key receiver", fc?.receiver_id, "vault.test.near"],
+  ["agent key methods", fc?.method_names.join(","), "request_direct_payment,execute_request"],
+  ["agent key allowance", fc?.allowance !== null && BigInt(fc?.allowance ?? 0) > 0n, true],
   ["vault owner", (await view("vault.test.near", "get_config", {})).owner, "owner.test.near"],
   ["vault network", (await view("vault.test.near", "get_config", {})).network, "sandbox"],
   ["auto payment", (await view("vault.test.near", "get_request", { request_id: "demo-auto-1" })).status, "SETTLED"],
@@ -80,4 +104,4 @@ for (const [name, got, want] of checks) {
   console.log(`${ok ? "PASS" : "FAIL"} ${name}: ${got}${ok ? "" : ` (expected ${want})`}`);
 }
 process.exit(failed ? 1 : 0);
-' "$RPC"
+' "$RPC" "$AGENT_KEY_FILE"
