@@ -45,7 +45,7 @@ Build it first: `pnpm install --frozen-lockfile && pnpm build`.
 
 **Local sandbox:** `scripts/dev-sandbox.sh` starts a chain, writes the agent's key file and prints both commands below with the right values.
 
-**Testnet**, after `scripts/deploy-testnet.sh <name>.testnet <owner>.testnet`:
+**Testnet**, after `scripts/deploy-testnet.sh <name>.testnet <owner>.testnet`. On a fresh install, run `claude` once and finish its setup and login first. A server added before that setup was gone afterwards (Claude Code 2.1.310).
 
 ```bash
 # Claude Code
@@ -55,7 +55,8 @@ claude mcp add spact \
   -e SPACT_VAULT_ID=vault.<name>.testnet \
   -e SPACT_AGENT_ID=agent.<name>.testnet \
   -e SPACT_AGENT_KEY_FILE=$HOME/.near-credentials/spact/agent.<name>.testnet.json \
-  -- node "$PWD/apps/mcp/dist/index.js"
+  -e SPACT_APPROVAL_URL=https://0xileri.github.io/Spact/ \
+  -- "$(command -v node)" "$PWD/apps/mcp/dist/index.js"
 
 # Codex
 codex mcp add spact \
@@ -64,10 +65,11 @@ codex mcp add spact \
   --env SPACT_VAULT_ID=vault.<name>.testnet \
   --env SPACT_AGENT_ID=agent.<name>.testnet \
   --env SPACT_AGENT_KEY_FILE=$HOME/.near-credentials/spact/agent.<name>.testnet.json \
-  -- node "$PWD/apps/mcp/dist/index.js"
+  --env SPACT_APPROVAL_URL=https://0xileri.github.io/Spact/ \
+  -- "$(command -v node)" "$PWD/apps/mcp/dist/index.js"
 ```
 
-Run these from the repo root. Point `SPACT_AGENT_KEY_FILE` at the restricted key the deploy script printed, never at the agent's full-access key in `~/.near-credentials/testnet/` (the server would refuse it anyway). `claude mcp list` should show `spact ... Connected`. The testnet commands have not been run yet; the sandbox ones have (docs/STATUS.md).
+Run these from the repo root. Point `SPACT_AGENT_KEY_FILE` at the restricted key the deploy script printed, never at the agent's full-access key in `~/.near-credentials/testnet/` (the server would refuse it anyway). `"$(command -v node)"` writes node's full path, so the host finds it even when node comes from nvm. Point `SPACT_APPROVAL_URL` at the site that shows your vault (here the hosted one), so `review_url` opens the approval page. `claude mcp get spact` should show the six values, and `/mcp` inside Claude Code should list `spact` with 2 tools. The Claude Code commands ran on testnet on 2026-10-25 (docs/STATUS.md); the Codex ones have not been tried.
 
 ## Tests
 

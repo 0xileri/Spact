@@ -25,7 +25,7 @@ A wallet key can spend everything. A NEAR function-call key restricts which meth
 | Owner dashboard and approval page (`apps/web`) | built, 23 unit tests and 14 browser tests on a local chain, including tampered RPC answers and framing |
 | Hosted site (GitHub Pages, from main) | live at https://0xileri.github.io/Spact/, reading the testnet vault |
 | Security Lab report and page (`packages/security-lab`, `?page=security`) | built: 13 of 18 attack cases pass on a local chain, 3 in unit tests only, 2 wait for P1 |
-| Agent MCP server for Claude Code / Codex (`apps/mcp`) | built, 24 unit tests and 11 tests over stdio on a local chain |
+| Agent MCP server for Claude Code / Codex (`apps/mcp`) | built, 24 unit tests and 11 tests over stdio on a local chain; run on testnet from Claude Code (paid, held for approval, blocked) |
 | Local demo with no wallet or testnet needed (`scripts/dev-sandbox.sh`) | works |
 | Testnet deploy script (`scripts/deploy-testnet.sh`) | ran on testnet on 2026-10-25: `vault.spact-ileri2.testnet` |
 | Signing with a real wallet | done on testnet with Meteor Wallet: the owner approved and paid the 25 TUSD demo request on the hosted site. Other wallets untested |
@@ -36,7 +36,7 @@ Details: [docs/STATUS.md](docs/STATUS.md). Security mapping: [docs/THREAT_MODEL.
 
 ## Let Claude Code or Codex pay
 
-`apps/mcp` is an MCP server with two tools, `request_payment` and `get_payment_status`. It signs with the agent's function-call key and refuses to start with a full-access key. `scripts/dev-sandbox.sh` prints the `claude mcp add` and `codex mcp add` commands for the local chain. Then ask the agent to pay `api.test.near` 5 TUSD (paid at once) or 20 TUSD (it gets an approval link and waits for you). Setup for testnet: [apps/mcp/README.md](apps/mcp/README.md).
+`apps/mcp` is an MCP server with two tools, `request_payment` and `get_payment_status`. It signs with the agent's function-call key and refuses to start with a full-access key. `scripts/dev-sandbox.sh` prints the `claude mcp add` and `codex mcp add` commands for the local chain. Then ask the agent to pay `api.test.near` 5 TUSD (paid at once) or 20 TUSD (it gets an approval link and waits for you). Setup for testnet: [apps/mcp/README.md](apps/mcp/README.md). On testnet, Claude Code paid 5 TUSD at once, waited for the owner on 12 TUSD, and was blocked paying `evil.testnet` (docs/STATUS.md).
 
 ## Security Lab
 
