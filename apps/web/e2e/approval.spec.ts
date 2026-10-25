@@ -124,7 +124,7 @@ test("links for another vault are refused", async ({ page }) => {
 });
 
 test("open requests are listed and link to their approval page", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?page=overview");
   const list = page.getByTestId("pending-list");
   await expect(list).toContainText(f.demo_request_id);
   await list.getByText(f.demo_request_id).click();

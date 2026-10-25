@@ -149,11 +149,15 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - uses: actions/configure-pages@v6
+        id: pages
       - run: pnpm --filter @spact/web build
         env:
           VITE_NEAR_NETWORK: ${{ vars.VITE_NEAR_NETWORK || 'testnet' }}
           VITE_NEAR_RPC_URL: ${{ vars.VITE_NEAR_RPC_URL || 'https://test.rpc.fastnear.com' }}
           VITE_VAULT_ID: ${{ vars.VITE_VAULT_ID }}
+          # absolute URLs for the share card, and the landing page's source link
+          VITE_SITE_URL: ${{ steps.pages.outputs.base_url }}
+          VITE_REPO_URL: ${{ github.server_url }}/${{ github.repository }}
       - uses: actions/download-artifact@v8
         with:
           name: security-report

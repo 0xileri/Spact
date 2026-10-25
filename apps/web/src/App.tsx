@@ -1,7 +1,9 @@
 import { useMemo } from "react";
 
 import { ApprovalPage } from "./components/ApprovalPage.js";
+import { Logo } from "./components/Brand.js";
 import { Dashboard } from "./components/Dashboard.js";
+import { Landing } from "./components/Landing.js";
 import { SecurityLab } from "./components/SecurityLab.js";
 import { Badge, Button, Mono, Notice } from "./components/ui.js";
 import type { NetworkId, SiteConfig } from "./config.js";
@@ -18,7 +20,7 @@ function NoVault() {
   return (
     <Notice tone="info" title="No vault is connected to this site yet">
       <p>
-        The overview and the approval page read one vault contract on chain, and this site was built without one. The Security Lab works: it shows the
+        The dashboard and the approval page read one vault contract on chain, and this site was built without one. The Security Lab works: it shows the
         test results for the commit this site was built from.
       </p>
       <p className="mt-2">
@@ -39,37 +41,22 @@ export function App({ config }: { config: SiteConfig }) {
   const badge = NETWORK_BADGE[config.network];
   const page = params.get("page");
   const onSecurityLab = page === "security" && !requestId;
-  const onDashboard = !requestId && !onSecurityLab && (linkVault === null || linkVault === config.vaultId);
-  const wide = onDashboard || onSecurityLab;
+  const onDashboard = page === "overview" && !requestId;
+  const onHome = !requestId && !onSecurityLab && !onDashboard;
+  const navClass = (active: boolean) => (active ? "font-semibold text-ink" : "text-slate-600 hover:text-ink");
 
   return (
-    <div className={`mx-auto flex min-h-screen flex-col px-4 py-6 ${wide ? "max-w-5xl" : "max-w-2xl"}`}>
+    <div className={`mx-auto flex min-h-screen flex-col px-4 py-6 ${requestId ? "max-w-2xl" : "max-w-5xl"}`}>
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <a href="./" className="text-lg font-bold tracking-tight">
-            Spact
+        <div className="flex min-w-0 flex-wrap items-center gap-x-7 gap-y-2">
+          <a href="./" aria-label="Spact home" aria-current={onHome ? "page" : undefined}>
+            <Logo />
           </a>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            {config.vaultId === null ? (
-              <Badge tone="neutral">No vault connected</Badge>
-            ) : (
-              <>
-                <Badge tone={badge.tone}>{badge.label}</Badge>
-                <span>
-                  vault <Mono>{config.vaultId}</Mono>
-                </span>
-              </>
-            )}
-          </div>
-          <nav className="mt-2 flex gap-4 text-sm" aria-label="Pages">
-            <a href="./" className={onDashboard ? "font-semibold text-slate-900" : "text-slate-600 hover:text-slate-900"} aria-current={onDashboard ? "page" : undefined}>
-              Overview
+          <nav className="flex gap-5 text-sm" aria-label="Pages">
+            <a href="?page=overview" className={navClass(onDashboard)} aria-current={onDashboard ? "page" : undefined}>
+              Dashboard
             </a>
-            <a
-              href="?page=security"
-              className={onSecurityLab ? "font-semibold text-slate-900" : "text-slate-600 hover:text-slate-900"}
-              aria-current={onSecurityLab ? "page" : undefined}
-            >
+            <a href="?page=security" className={navClass(onSecurityLab)} aria-current={onSecurityLab ? "page" : undefined}>
               Security Lab
             </a>
           </nav>
@@ -92,6 +79,19 @@ export function App({ config }: { config: SiteConfig }) {
         </div>
       </header>
 
+      <div className="mb-6 flex flex-wrap items-center gap-2 text-xs text-slate-500" data-testid="environment">
+        {config.vaultId === null ? (
+          <Badge tone="neutral">No vault connected</Badge>
+        ) : (
+          <>
+            <Badge tone={badge.tone}>{badge.label}</Badge>
+            <span>
+              vault <Mono>{config.vaultId}</Mono>
+            </span>
+          </>
+        )}
+      </div>
+
       <main className="flex-1">
         {wallet.error ? (
           <div className="mb-4">
@@ -103,6 +103,8 @@ export function App({ config }: { config: SiteConfig }) {
         {config.vaultId === null ? (
           onSecurityLab ? (
             <SecurityLab reportUrl={config.securityReportUrl} />
+          ) : onHome ? (
+            <Landing config={config} />
           ) : (
             <NoVault />
           )
@@ -116,13 +118,15 @@ export function App({ config }: { config: SiteConfig }) {
           <SecurityLab reportUrl={config.securityReportUrl} />
         ) : requestId ? (
           <ApprovalPage config={config} requestId={requestId} signer={signer} wallet={wallet} />
-        ) : (
+        ) : onDashboard ? (
           <Dashboard config={config} />
+        ) : (
+          <Landing config={config} />
         )}
       </main>
 
       <footer className="mt-10 border-t border-slate-200 pt-4 text-xs leading-relaxed text-slate-500">
-        Unaudited hackathon prototype. This page never holds keys: your wallet signs, and the vault contract enforces the rules.
+        Spact is an unaudited hackathon prototype. Use test tokens only. This page never holds keys: your wallet signs, and the vault contract enforces the rules.
       </footer>
     </div>
   );

@@ -100,7 +100,7 @@ export function ApprovalPage({
             <h1 className="text-sm font-medium text-slate-500">Payment request</h1>
             <StatusBadge status={request.status} />
           </div>
-          <p className="mt-3 text-3xl font-semibold tracking-tight" data-testid="amount">
+          <p className="mt-3 font-display text-3xl font-semibold tracking-tight" data-testid="amount">
             {formatAmount(request.amount, token)}
           </p>
           <p className="mt-1 text-sm text-slate-600">to</p>

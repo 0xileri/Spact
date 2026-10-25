@@ -26,6 +26,13 @@ describe("parseConfig", () => {
     expect(() => parseConfig({ ...BASE, VITE_SECURITY_REPORT_URL: "javascript:alert(1)" })).toThrow();
   });
 
+  it("accepts an https repository link, and nothing else", () => {
+    expect(parseConfig(BASE).repoUrl).toBeNull();
+    expect(parseConfig({ ...BASE, VITE_REPO_URL: "https://github.com/0xileri/Spact/" }).repoUrl).toBe("https://github.com/0xileri/Spact");
+    expect(() => parseConfig({ ...BASE, VITE_REPO_URL: "http://github.com/x/y" })).toThrow(/https/);
+    expect(() => parseConfig({ ...BASE, VITE_REPO_URL: "javascript:alert(1)" })).toThrow();
+  });
+
   it("refuses the dev signer outside sandbox", () => {
     expect(() => parseConfig({ ...BASE, VITE_DEV_SIGNER_URL: "http://127.0.0.1:8788" })).toThrow(ConfigError);
     expect(() => parseConfig({ ...BASE, VITE_NEAR_NETWORK: "mainnet", VITE_DEV_SIGNER_URL: "http://127.0.0.1:8788" })).toThrow(

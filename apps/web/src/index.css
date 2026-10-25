@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Spact brand: ink on paper, plus the three outcomes as signal colors (paid, waits, blocked). */
 @theme {
+  --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --color-ink: #0b0f14;
+  --color-paper: #f7f6f2;
+  --color-paid: #10b981;
+  --color-waits: #f59e0b;
+  --color-blocked: #f43f5e;
 }

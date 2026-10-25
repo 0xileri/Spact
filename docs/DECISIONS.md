@@ -124,6 +124,12 @@ No vault is deployed yet, so an empty `VITE_VAULT_ID` now builds a Security Lab-
 
 GitHub Pages cannot send response headers, so there is no `frame-ancestors` header. Instead, the page draws nothing but a notice and a new-tab link when it is inside a frame (`window.top !== window.self`). A frame that blocks scripts gets an empty page, since everything is rendered by script. The page sets no Content-Security-Policy either. A `<meta>` policy cannot carry `frame-ancestors`, and near-connect runs wallet code in `srcdoc` iframes, which inherit the page's policy, so a strict one could break the wallets, and real wallet signing cannot be tested from the build environment. The cost: an embedding wallet browser cannot frame Spact. Moving to Cloudflare Pages would allow real headers.
 
+## ADR-024: A landing page at /, and a brand built on the three outcomes (2026-10-25)
+
+Visitors and judges land on `/`, which used to open the owner dashboard with no explanation. `/` is now a landing page: what Spact is; the three outcomes in the configured vault's own limits, read from its policy so the page cannot overstate them; how it works; live numbers read from chain; and the Security Lab counts from the CI-built report. The dashboard moved to `?page=overview`. Approval links (`?request=`) are unchanged, so links from Telegram and the MCP server keep working. Claims on the page are backed elsewhere: "the agent cannot move funds by itself" by ADR-017 and the `t19`/`t20` sandbox tests.
+
+The brand is ink on paper, with the outcomes as signal colors: paid (emerald), waits (amber), blocked (rose), the same hues the status badges already used. The logo is a gate: two posts and a payment passing between them. The display font is Space Grotesk (OFL-1.1), bundled from `@fontsource-variable/space-grotesk` 5.3.0, so the site still makes no request outside its own origin. The PNG icons and the share card are rendered from HTML by `apps/web/dev/render-brand.ts`. Share cards need absolute image URLs, so `VITE_SITE_URL` (set by CI from `actions/configure-pages`) adds those tags at build time; without it they are left out, and a bad value fails the build.
+
 ## Open questions (from AGENTS.md section 17)
 
 - [x] Official `HACKATHON.md`: added at the repo root (owner copy, 2026-10-23).

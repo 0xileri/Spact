@@ -12,7 +12,7 @@ test("the dashboard shows what is on chain: balance, budget, waiting requests an
   await near.agentRequests("e2e-dash", 13n * UNIT, f.api_id, "CDN bandwidth");
   const [vaultBalance, budget] = await Promise.all([near.balance(f.vault_id), near.budget()]);
 
-  await page.goto("/");
+  await page.goto("/?page=overview");
   await expect(page.getByTestId("dashboard")).toBeVisible();
   await expect(page.getByTestId(`balance-${f.token_id}`)).toHaveText(tusd(vaultBalance));
   await expect(page.getByTestId(`available-${f.token_id}`)).toHaveText(tusd(budget.available));
@@ -50,7 +50,7 @@ test("budget numbers that do not add up are flagged, not shown", async ({ page }
     },
   );
 
-  await page.goto("/");
+  await page.goto("/?page=overview");
   await expect(page.getByText("Budget numbers from the RPC do not add up")).toBeVisible();
   await expect(page.getByTestId(`available-${f.token_id}`)).toHaveCount(0);
 });
