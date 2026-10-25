@@ -1,0 +1,13 @@
+# Only what the web build needs goes into the image build context.
+.git
+**/node_modules
+**/dist
+contracts/target
+reports
+apps/web/test-results
+apps/web/playwright-report
+apps/web/public/security-report.json
+.env
+.env.*
+**/.env
+**/.env.*

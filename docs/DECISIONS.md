@@ -130,6 +130,23 @@ Visitors and judges land on `/`, which used to open the owner dashboard with no 
 
 The brand is ink on paper, with the outcomes as signal colors: paid (emerald), waits (amber), blocked (rose), the same hues the status badges already used. The logo is a gate: two posts and a payment passing between them. The display font is Space Grotesk (OFL-1.1), bundled from `@fontsource-variable/space-grotesk` 5.3.0, so the site still makes no request outside its own origin. The PNG icons and the share card are rendered from HTML by `apps/web/dev/render-brand.ts`. Share cards need absolute image URLs, so `VITE_SITE_URL` (set by CI from `actions/configure-pages`) adds those tags at build time; without it they are left out, and a bad value fails the build.
 
+## ADR-025: Railway serves the site with real security headers; GitHub Pages stays (2026-10-25)
+
+The owner asked for the site on Railway. A server, unlike GitHub Pages, can send response headers. The root `Dockerfile` builds `apps/web` and serves it with Caddy 2.11.7. `apps/web/Caddyfile` sends:
+- `X-Frame-Options: DENY`;
+- `X-Content-Type-Options: nosniff`;
+- `Referrer-Policy: no-referrer`;
+- a `Permissions-Policy` that turns off camera, microphone, location, payment and USB;
+- HSTS.
+
+Hashed assets are cached for a year, and the page itself is revalidated on every load. The header is `X-Frame-Options`, not CSP `frame-ancestors`, because near-connect runs wallet code in `srcdoc` iframes that inherit the page's CSP. Whether an inherited `frame-ancestors` would block them cannot be tested without a real wallet. The script frame guard (ADR-023) stays as a second layer.
+
+**Where the Security Lab report comes from.** Railway builds from GitHub by itself, so no Railway token goes into GitHub Actions (AGENTS.md section 15), and the report is not built into the Railway image. Instead the page reads the CI-built `security-report.json` from the GitHub Pages site at runtime (`VITE_SECURITY_REPORT_URL`) and shows its commit. That commit can trail the Railway deploy by one CI run. GitHub Pages keeps publishing the same site.
+
+**Setup.** Railway's `railway.json` config is deprecated for new services, so the setup is the root `Dockerfile` plus service variables set in Railway's dashboard. CI's `web-image` job builds the image, runs it and checks it with `scripts/check-web-image.sh`.
+
+**Cost.** Railway's trial is a one-time $5 for 30 days. After that it is the Free plan's $1 a month or Hobby at $5 a month, inside AGENTS.md's $100 ceiling.
+
 ## Open questions (from AGENTS.md section 17)
 
 - [x] Official `HACKATHON.md`: added at the repo root (owner copy, 2026-10-23).
@@ -142,7 +159,7 @@ The brand is ink on paper, with the outcomes as signal colors: paid (emerald), w
 - [ ] Storage pruning for terminal requests.
 - [ ] 1Click quote authenticity and deposit semantics (P1).
 - [x] Telegram chat binding flow: one-time code on the operator's terminal (ADR-020). Open: a wallet-signed binding.
-- [x] Hosting: GitHub Pages from main, with the CI-built report (ADR-023). Open: a Content-Security-Policy, and real `frame-ancestors` headers, which need another host.
+- [x] Hosting: GitHub Pages from main, with the CI-built report (ADR-023), and Railway with real security headers (ADR-025). Open: a Content-Security-Policy.
 - [ ] A trusted RPC endpoint for testnet/mainnet. The site uses `https://test.rpc.fastnear.com` on testnet for now.
 - [ ] Reproducible vault build, so anyone can match the deployed code hash to the source (STATUS: "Build reproducibility").
 - [ ] License (MIT or Apache-2.0).

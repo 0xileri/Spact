@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 
 import { App } from "./App.js";
 import { ConfigError, parseSiteConfig } from "./config.js";
+import "@fontsource-variable/inter";
 import "@fontsource-variable/space-grotesk";
 import "./index.css";
 
@@ -14,7 +15,7 @@ if (window.top !== window.self) {
   root.render(
     <main className="mx-auto max-w-2xl p-6" data-testid="framed">
       <h1 className="text-lg font-semibold">Spact does not run inside a frame</h1>
-      <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-2 text-sm text-stone-600">
         Another site has embedded this page. Approvals only happen on Spact&apos;s own page, where you can see its address.
       </p>
       <a href={window.location.href} target="_blank" rel="noreferrer noopener" className="mt-2 inline-block text-sm underline">
@@ -36,7 +37,7 @@ if (window.top !== window.self) {
       <main className="mx-auto max-w-2xl p-6">
         <h1 className="text-lg font-semibold">Spact is not configured</h1>
         <p className="mt-2 text-sm text-rose-700">{message}</p>
-        <p className="mt-2 text-sm text-slate-600">See apps/web/.env.example.</p>
+        <p className="mt-2 text-sm text-stone-600">See apps/web/.env.example.</p>
       </main>,
     );
   }

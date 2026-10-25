@@ -1,0 +1,32 @@
+# Serves the built web app (Dockerfile). Unlike GitHub Pages, this can send response headers, so the
+# page is protected from framing by the browser itself, not only by its own script (ADR-025).
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+
+# Railway sets PORT and routes HTTPS to it; TLS ends at Railway's edge.
+:{$PORT:8080} {
+	root * {$SITE_ROOT:/srv}
+	encode zstd gzip
+
+	header {
+		# X-Frame-Options, not CSP frame-ancestors: wallet code runs in srcdoc iframes that inherit
+		# the page's CSP, and a response header that only covers this document is enough here.
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	# Vite's hashed file names change with their content, so they can be cached for good.
+	@hashed path /assets/*
+	header @hashed Cache-Control "public, max-age=31536000, immutable"
+	@page path / /index.html
+	header @page Cache-Control "no-cache"
+
+	file_server
+}
