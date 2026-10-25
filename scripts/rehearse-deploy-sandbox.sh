@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Dress rehearsal for scripts/deploy-testnet.sh: runs it unchanged against a fresh local sandbox node,
-# then checks the resulting chain state. Testnet-only steps (faucet, wallet) are not covered.
+# then checks the resulting chain state. It also checks that the script refuses a missing owner and a
+# deployer that was used before, without building or spending anything. Testnet-only steps (faucet,
+# wallet) are not covered.
 #
 # Needs near-cli-rs and the sandbox binary that scripts/test-contracts.sh downloads.
 # near-cli-rs runs with a throwaway HOME and config, so your real ~/.near-credentials is untouched.
@@ -52,9 +54,28 @@ near account create-account fund-myself owner.test.near '5 NEAR' autogenerate-ne
   sign-as test.near network-config localnet-sandbox sign-with-legacy-keychain send
 
 AGENT_KEY_FILE="$WORK/agent-function-call-key.json"
-NETWORK_CONFIG=localnet-sandbox NETWORK_LABEL=sandbox RPC_URL="$RPC" \
-  NEAR_CREDENTIALS_DIR="$WORK/.near-credentials" NEAR_NETWORK_NAME=localnet AGENT_KEY_FILE="$AGENT_KEY_FILE" \
-  "$ROOT/scripts/deploy-testnet.sh" test.near owner.test.near
+deploy() {
+  NETWORK_CONFIG=localnet-sandbox NETWORK_LABEL=sandbox RPC_URL="$RPC" \
+    NEAR_CREDENTIALS_DIR="$WORK/.near-credentials" NEAR_NETWORK_NAME=localnet AGENT_KEY_FILE="$AGENT_KEY_FILE" \
+    "$ROOT/scripts/deploy-testnet.sh" "$@"
+}
+# Expects the deploy script to stop with $1 in its output before creating anything.
+refused() {
+  local want="$1"; shift
+  if deploy "$@" >"$WORK/refused.log" 2>&1; then echo "FAIL deploy $* ran" >&2; exit 1; fi
+  grep -q "$want" "$WORK/refused.log" || { cat "$WORK/refused.log" >&2; echo "FAIL expected: $want" >&2; exit 1; }
+  ! grep -q "==> Building contracts" "$WORK/refused.log" || { echo "FAIL deploy $* got past the account checks" >&2; exit 1; }
+  echo "PASS refused before building: $want"
+}
+
+echo "==> Checking that a missing owner account is refused"
+refused "owner nobody.test.near does not exist" test.near nobody.test.near
+
+deploy test.near owner.test.near
+
+echo
+echo "==> Checking that a second run with the same deployer is refused"
+refused "tusd.test.near already exists" test.near owner.test.near
 
 echo
 echo "==> Checking that the agent's restricted key cannot move NEAR"
