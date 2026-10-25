@@ -80,6 +80,13 @@ GitHub Actions `ci` run 1 (commit `8b91f83`) passed both jobs. The contracts job
 
 Measured: an auto payment (request + ft_transfer + callback) burnt about 7 Tgas in sandbox.
 
+Railway and redesign (2026-10-25):
+- **Image:** a root `Dockerfile` serves the site with Caddy 2.11.7 and real security headers (DECISIONS ADR-025).
+- **Local check:** Caddy's own release binary (checksum verified) served a production build here. `scripts/check-web-image.sh` passed all 15 checks: headers on the page and assets, a one-year cache for hashed assets, share tags, a 404 for unknown paths, and path traversal refused. Against a plain server without the headers it reports 9 failures.
+- **Docker:** no daemon runs here, so the image itself is first built and run by CI's `web-image` job.
+- **Not checked from here:** whether GitHub Pages lets other sites read the report (CORS), which the Railway site needs; `github.io` is unreachable from here.
+- **Redesign:** the landing page now has a sticky header, a hero with an example flow, the outcomes band, how it works, a wallet-versus-Spact comparison, the live vault, a dark Security Lab section, a get-started terminal and a footer. It uses warm grays and Inter for body text.
+
 Landing page and brand (2026-10-25): `/` is now a landing page (DECISIONS ADR-024). It says what Spact is, states the three outcomes in the configured vault's own limits read from its policy, shows live numbers from chain and the Security Lab counts from the CI report. The dashboard moved to `?page=overview`; approval links are unchanged. Brand: ink on paper, the outcomes as signal colors (paid, waits, blocked), a gate logo, Space Grotesk bundled with the site, favicons and a share card rendered by `apps/web/dev/render-brand.ts`. Checked by screenshot at 1280 and 390 px.
 
 Deploy script checks (2026-10-25): before building or spending anything, `scripts/deploy-testnet.sh` now stops if the owner account does not exist or the deployer was used before. It also passes `--signature-scheme ed25519`, because near-cli-rs 0.30.1 asks in a terminal and the agent's MCP server reads only ed25519 keys. `scripts/rehearse-deploy-sandbox.sh` passed 12 checks: a missing owner refused before building, the full deploy, a second run with the same deployer refused before building, the refused NEAR transfer, and the eight chain checks. With a fake RPC that answers an error, the account check stops the script instead of reading the error as "no account".

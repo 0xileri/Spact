@@ -94,6 +94,17 @@ jobs:
           name: playwright-traces
           path: apps/web/test-results/
 
+  # The image Railway deploys (Dockerfile): build it, run it, and check the page and its headers.
+  web-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: docker build -t spact-web --build-arg VITE_SITE_URL=https://spact.example .
+      - run: docker run -d --name spact-web -e PORT=8080 -p 8080:8080 spact-web
+      - run: scripts/check-web-image.sh http://127.0.0.1:8080 https://spact.example
+      - if: failure()
+        run: docker logs spact-web
+
   # Builds the Security Lab report from the raw output of the jobs above, even when one failed,
   # so failures show in it. It fails if any test the catalog names failed or did not run.
   security-report:

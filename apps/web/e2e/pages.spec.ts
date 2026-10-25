@@ -22,7 +22,6 @@ test("the published site works under its subpath with no vault: the Security Lab
   await expect(page.getByTestId("landing")).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Autonomous spending.");
   await expect(page.getByText("No vault is connected to this site yet")).toBeVisible();
-  await expect(page.getByText("No vault connected")).toBeVisible();
   await expect(page.getByTestId("connect")).toHaveCount(0);
   // without a vault the outcomes are described in words, and the Security Lab numbers come from the report
   await expect(page.getByTestId("rule-paid")).toHaveText("Small payments, up to your auto limit");
@@ -38,6 +37,7 @@ test("the published site works under its subpath with no vault: the Security Lab
   await page.getByRole("navigation", { name: "Pages" }).getByRole("link", { name: "Dashboard" }).click();
   await expect(page).toHaveURL(`${PAGES}?page=overview`);
   await expect(page.getByText("No vault is connected to this site yet")).toBeVisible();
+  await expect(page.getByTestId("environment")).toHaveText("No vault connected");
 
   await page.getByRole("link", { name: "Open the Security Lab" }).click();
   await expect(page).toHaveURL(`${PAGES}?page=security`);

@@ -1,12 +1,33 @@
 @import "tailwindcss";
 
-/* Spact brand: ink on paper, plus the three outcomes as signal colors (paid, waits, blocked). */
+/*
+ * Spact brand: ink on warm paper, with the three outcomes as signal colors (paid, waits, blocked).
+ * Neutrals are Tailwind's warm "stone" grays, so text and lines sit well on the paper background.
+ */
 @theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   --color-ink: #0b0f14;
   --color-paper: #f7f6f2;
+  --color-surface: #fffefb;
+  --color-line: #e7e4dc;
   --color-paid: #10b981;
   --color-waits: #f59e0b;
   --color-blocked: #f43f5e;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Anchored sections stop below the sticky header. */
+[id] {
+  scroll-margin-top: 5rem;
 }

@@ -26,7 +26,7 @@ function short(sha: string): string {
 
 function ExternalLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer noopener" className="underline decoration-slate-300 underline-offset-2 hover:decoration-slate-600">
+    <a href={href} target="_blank" rel="noreferrer noopener" className="underline decoration-stone-300 underline-offset-2 hover:decoration-stone-600">
       {children}
     </a>
   );
@@ -38,14 +38,14 @@ function CaseCard({ c }: { c: LabCase }) {
     <li data-case={c.id} data-status={c.derived}>
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <h3 className="min-w-0 text-sm font-semibold text-slate-900">
-            <span className="mr-2 font-mono text-slate-500">{c.id}</span>
+          <h3 className="min-w-0 text-sm font-semibold text-stone-900">
+            <span className="mr-2 font-mono text-stone-500">{c.id}</span>
             {c.attack}
           </h3>
           <Badge tone={status.tone}>{status.label}</Badge>
         </div>
-        <p className="mt-1 text-sm text-slate-600">
-          <span className="text-slate-500">Expected:</span> {c.expected}
+        <p className="mt-1 text-sm text-stone-600">
+          <span className="text-stone-500">Expected:</span> {c.expected}
         </p>
         {c.mismatch ? (
           <div className="mt-3">
@@ -56,9 +56,9 @@ function CaseCard({ c }: { c: LabCase }) {
             </Notice>
           </div>
         ) : null}
-        {c.note ? <p className="mt-2 text-xs leading-relaxed text-slate-500">{c.note}</p> : null}
+        {c.note ? <p className="mt-2 text-xs leading-relaxed text-stone-500">{c.note}</p> : null}
         {c.evidence.length > 0 ? (
-          <ul className="mt-3 space-y-1.5 border-t border-slate-100 pt-3 text-xs">
+          <ul className="mt-3 space-y-1.5 border-t border-stone-100 pt-3 text-xs">
             {c.evidence.map((e) => (
               <li key={`${e.suite}:${e.test}`} className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                 <span
@@ -68,7 +68,7 @@ function CaseCard({ c }: { c: LabCase }) {
                   {e.result === "passed" ? "✓ passed" : e.result === "failed" ? "✗ failed" : "✗ did not run"}
                 </span>
                 <Badge tone="neutral">{LAYER[e.layer]}</Badge>
-                <Mono className="text-slate-700">{e.test}</Mono>
+                <Mono className="text-stone-700">{e.test}</Mono>
               </li>
             ))}
           </ul>
@@ -89,7 +89,7 @@ export function SecurityLab({ reportUrl }: { reportUrl: string }) {
   const intro = (
     <div>
       <h1 className="font-display text-2xl font-bold tracking-tight">Security Lab</h1>
-      <p className="mt-1 max-w-3xl text-sm leading-relaxed text-slate-600">
+      <p className="mt-1 max-w-3xl text-sm leading-relaxed text-stone-600">
         Each row is an attack from the spec and the tests that try it. A row passes on a local chain only if every listed test ran and
         passed, and at least one of them checks real chain state on a local NEAR node. These tests use a throwaway sandbox chain and test
         tokens: no real funds move.
@@ -97,7 +97,7 @@ export function SecurityLab({ reportUrl }: { reportUrl: string }) {
     </div>
   );
 
-  if (!result) return <div className="space-y-4">{intro}<p className="text-sm text-slate-500">Reading the report…</p></div>;
+  if (!result) return <div className="space-y-4">{intro}<p className="text-sm text-stone-500">Reading the report…</p></div>;
   if (result.kind === "missing") {
     return (
       <div className="space-y-4">
@@ -133,20 +133,20 @@ export function SecurityLab({ reportUrl }: { reportUrl: string }) {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="lab-summary">
         {(Object.keys(STATUS) as CaseStatus[]).map((s) => (
           <Card key={s} className="p-4">
-            <p className="text-xs font-medium text-slate-500">{STATUS[s].label}</p>
+            <p className="text-xs font-medium text-stone-500">{STATUS[s].label}</p>
             <p className="mt-1 font-display text-2xl font-semibold" data-testid={`count-${s}`}>
               {counts[s]}
-              <span className="ml-1 text-xs font-normal text-slate-500">of {cases.length}</span>
+              <span className="ml-1 text-xs font-normal text-stone-500">of {cases.length}</span>
             </p>
           </Card>
         ))}
       </div>
 
       <Card>
-        <h2 className="text-sm font-semibold text-slate-700">Where these results come from</h2>
+        <h2 className="text-sm font-semibold text-stone-700">Where these results come from</h2>
         <dl className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-xs text-slate-500">Run</dt>
+            <dt className="text-xs text-stone-500">Run</dt>
             <dd data-testid="lab-source">
               {source.kind === "ci" && source.run_url ? (
                 <ExternalLink href={source.run_url}>CI run on GitHub Actions</ExternalLink>
@@ -155,11 +155,11 @@ export function SecurityLab({ reportUrl }: { reportUrl: string }) {
                   Local run, not from CI <Badge tone="warn">unverified</Badge>
                 </span>
               )}
-              <span className="block text-xs text-slate-500">{source.runner}</span>
+              <span className="block text-xs text-stone-500">{source.runner}</span>
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Commit</dt>
+            <dt className="text-xs text-stone-500">Commit</dt>
             <dd>
               {source.commit ? (
                 source.commit_url ? (
@@ -175,27 +175,27 @@ export function SecurityLab({ reportUrl }: { reportUrl: string }) {
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Generated</dt>
+            <dt className="text-xs text-stone-500">Generated</dt>
             <dd>{report.generated_at.replace("T", " ").replace(/\.\d+Z$/, " UTC").replace(/Z$/, " UTC")}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Tests run</dt>
+            <dt className="text-xs text-stone-500">Tests run</dt>
             <dd data-testid="lab-totals">
               {testsRun} in {report.suites.length} suites, {testsFailed} failed
             </dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="text-xs text-slate-500">Toolchain</dt>
-            <dd className="text-slate-700">
+            <dt className="text-xs text-stone-500">Toolchain</dt>
+            <dd className="text-stone-700">
               {Object.entries(report.toolchain)
                 .map(([k, v]) => `${k} ${v}`)
                 .join(" · ")}
             </dd>
           </div>
         </dl>
-        <div className="-mx-5 mt-4 overflow-x-auto border-t border-slate-100">
+        <div className="-mx-5 mt-4 overflow-x-auto border-t border-stone-100">
           <table className="w-full min-w-[34rem] text-left text-xs">
-            <thead className="text-slate-500">
+            <thead className="text-stone-500">
               <tr>
                 <th className="px-5 py-2 font-medium">Suite</th>
                 <th className="px-2 py-2 font-medium">Passed</th>
@@ -205,7 +205,7 @@ export function SecurityLab({ reportUrl }: { reportUrl: string }) {
             </thead>
             <tbody>
               {report.suites.map((s) => (
-                <tr key={s.id} className="border-t border-slate-50">
+                <tr key={s.id} className="border-t border-stone-50">
                   <td className="px-5 py-1.5 font-mono">{s.id}</td>
                   <td className="px-2 py-1.5">{s.passed}</td>
                   <td className={`px-2 py-1.5 ${s.failed > 0 ? "font-semibold text-rose-700" : ""}`}>{s.failed}</td>
@@ -226,20 +226,20 @@ export function SecurityLab({ reportUrl }: { reportUrl: string }) {
       </ul>
 
       <Card>
-        <h2 className="text-sm font-semibold text-slate-700">Run them yourself</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <h2 className="text-sm font-semibold text-stone-700">Run them yourself</h2>
+        <p className="mt-1 text-sm text-stone-600">
           From a checkout of the repo, <Mono>scripts/security-report.sh</Mono> runs everything below and rebuilds this report. Each suite on its own:
         </p>
         <ul className="mt-2 space-y-1 text-sm">
           {reruns.map((r) => (
             <li key={r}>
-              <Mono className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">{r}</Mono>
+              <Mono className="rounded bg-stone-100 px-1.5 py-0.5 text-xs">{r}</Mono>
             </li>
           ))}
         </ul>
       </Card>
 
-      <p className="text-xs leading-relaxed text-slate-500">
+      <p className="text-xs leading-relaxed text-stone-500">
         Unaudited hackathon prototype. Passing tests show that these attacks fail in these tests. They do not prove the system secure.
       </p>
     </div>
