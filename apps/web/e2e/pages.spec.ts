@@ -65,3 +65,23 @@ test("inside a frame, neither the vault site nor the published site draws anythi
     await expect(frame.getByRole("link")).toHaveText(["Open Spact in a new tab"]);
   }
 });
+
+test("the published site has a skip link, a privacy and terms page, and a branded 404", async ({ page }) => {
+  await page.goto(PAGES);
+  await page.keyboard.press("Tab");
+  const skip = page.getByRole("link", { name: "Skip to content" });
+  await expect(skip).toBeFocused();
+  await skip.press("Enter");
+  await expect(page.locator("#main")).toBeFocused();
+
+  await page.getByRole("navigation", { name: "Footer" }).getByRole("link", { name: "Privacy and terms" }).click();
+  await expect(page).toHaveURL(`${PAGES}?page=legal`);
+  await expect(page.getByTestId("legal")).toContainText("This site sets no cookies and runs no analytics");
+  await expect(page.getByTestId("legal")).toContainText("rpc.invalid");
+  await expect(page.getByTestId("legal")).toContainText("test tokens that have no value");
+
+  const missing = await page.goto(`${PAGES}no/such/page`);
+  expect(missing?.status()).toBe(404);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("This page does not exist.");
+  await expect(page.getByRole("link", { name: "Back to Spact" })).toBeVisible();
+});

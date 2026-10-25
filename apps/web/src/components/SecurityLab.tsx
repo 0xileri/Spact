@@ -58,7 +58,7 @@ function CaseCard({ c }: { c: LabCase }) {
         ) : null}
         {c.note ? <p className="mt-2 text-xs leading-relaxed text-stone-500">{c.note}</p> : null}
         {c.evidence.length > 0 ? (
-          <ul className="mt-3 space-y-1.5 border-t border-stone-100 pt-3 text-xs">
+          <ul className="mt-3 space-y-2 border-t border-stone-100 pt-3 text-xs">
             {c.evidence.map((e) => (
               <li key={`${e.suite}:${e.test}`} className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                 <span
@@ -193,23 +193,23 @@ export function SecurityLab({ reportUrl }: { reportUrl: string }) {
             </dd>
           </div>
         </dl>
-        <div className="-mx-5 mt-4 overflow-x-auto border-t border-stone-100">
+        <div className="-mx-6 mt-4 overflow-x-auto border-t border-stone-100">
           <table className="w-full min-w-[34rem] text-left text-xs">
             <thead className="text-stone-500">
               <tr>
-                <th className="px-5 py-2 font-medium">Suite</th>
+                <th className="px-6 py-2 font-medium">Suite</th>
                 <th className="px-2 py-2 font-medium">Passed</th>
                 <th className="px-2 py-2 font-medium">Failed</th>
-                <th className="px-5 py-2 font-medium">sha256 of the raw output</th>
+                <th className="px-6 py-2 font-medium">sha256 of the raw output</th>
               </tr>
             </thead>
             <tbody>
               {report.suites.map((s) => (
                 <tr key={s.id} className="border-t border-stone-50">
-                  <td className="px-5 py-1.5 font-mono">{s.id}</td>
-                  <td className="px-2 py-1.5">{s.passed}</td>
-                  <td className={`px-2 py-1.5 ${s.failed > 0 ? "font-semibold text-rose-700" : ""}`}>{s.failed}</td>
-                  <td className="px-5 py-1.5 font-mono" title={s.sha256 ?? undefined}>
+                  <td className="px-6 py-2 font-mono">{s.id}</td>
+                  <td className="px-2 py-2">{s.passed}</td>
+                  <td className={`px-2 py-2 ${s.failed > 0 ? "font-semibold text-rose-700" : ""}`}>{s.failed}</td>
+                  <td className="px-6 py-2 font-mono" title={s.sha256 ?? undefined}>
                     {s.sha256 ? `${short(s.sha256)} (${s.input})` : `missing (${s.input})`}
                   </td>
                 </tr>
@@ -233,7 +233,7 @@ export function SecurityLab({ reportUrl }: { reportUrl: string }) {
         <ul className="mt-2 space-y-1 text-sm">
           {reruns.map((r) => (
             <li key={r}>
-              <Mono className="rounded bg-stone-100 px-1.5 py-0.5 text-xs">{r}</Mono>
+              <Mono className="rounded bg-stone-100 px-2 py-0.5 text-xs">{r}</Mono>
             </li>
           ))}
         </ul>

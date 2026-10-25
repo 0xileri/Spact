@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { Status } from "@spact/shared";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-2xl border border-line bg-surface p-5 ${className}`}>{children}</section>;
+  return <section className={`rounded-2xl border border-line bg-surface p-6 ${className}`}>{children}</section>;
 }
 
 type Tone = "neutral" | "good" | "warn" | "bad" | "info";
@@ -17,7 +17,7 @@ const TONES: Record<Tone, string> = {
 };
 
 export function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
-  return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ${TONES[tone]}`}>{children}</span>;
+  return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${TONES[tone]}`}>{children}</span>;
 }
 
 export function Notice({ tone, title, children }: { tone: Tone; title: string; children?: ReactNode }) {
@@ -105,7 +105,7 @@ export function Button({
       disabled={disabled}
       title={title}
       data-testid={testId}
-      className={`inline-flex min-h-11 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${styles}`}
+      className={`inline-flex min-h-11 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition duration-300 ease-fluid active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${styles}`}
     >
       {children}
     </button>

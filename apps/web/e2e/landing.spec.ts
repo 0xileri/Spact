@@ -47,3 +47,25 @@ test("on a phone the landing page fits the screen", async ({ page }) => {
   await expect(page.getByTestId("live-balance")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
+
+test("sections fade in as they are reached, and the tagline lights up word by word", async ({ page }) => {
+  await page.goto("/");
+  const faq = page.getByTestId("faq");
+  // below the fold, a section waits for the reader
+  await expect(faq.locator("xpath=ancestor::div[contains(@class,'reveal')][1]")).toHaveAttribute("data-shown", "false");
+  const words = page.getByTestId("tagline").locator("[data-word]");
+  await expect(words.first()).toHaveClass(/text-stone-300/);
+
+  await page.getByTestId("tagline").scrollIntoViewIfNeeded();
+  await expect(words.last()).toHaveClass(/text-ink/, { timeout: 5_000 });
+  await faq.scrollIntoViewIfNeeded();
+  await expect(faq.locator("xpath=ancestor::div[contains(@class,'reveal')][1]")).toHaveAttribute("data-shown", "true");
+});
+
+test("with reduced motion everything is shown at once", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(page.getByTestId("tagline").locator("[data-word]").last()).toHaveClass(/text-ink/);
+  await expect(page.locator(".reveal").first()).toHaveAttribute("data-shown", "true");
+  await expect(page.locator('.reveal[data-shown="false"]')).toHaveCount(0);
+});

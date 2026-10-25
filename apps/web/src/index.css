@@ -1,13 +1,17 @@
 @import "tailwindcss";
 
 /*
- * Spact brand: ink on warm paper, with the three outcomes as signal colors (paid, waits, blocked).
- * Neutrals are Tailwind's warm "stone" grays, so text and lines sit well on the paper background.
+ * Spact design values: the brand version of the redesign skill's "Design values" (ADR-026).
+ * - One typeface, Space Grotesk, plus Geist Mono for code, account names and hashes.
+ * - Ink on warm paper; warm "stone" grays only.
+ * - Green, amber and rose appear only as the paid / waits / blocked signals.
+ * - No background gradients; depth comes from a faint grain, hairlines and tinted shadows.
+ * - One motion curve for everything that moves.
  */
 @theme {
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --color-ink: #0b0f14;
   --color-paper: #f7f6f2;
   --color-surface: #fffefb;
@@ -15,19 +19,71 @@
   --color-paid: #10b981;
   --color-waits: #f59e0b;
   --color-blocked: #f43f5e;
+  --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 html {
   scroll-behavior: smooth;
 }
 
+body {
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p,
+li,
+dd {
+  text-wrap: pretty;
+}
+
+/* Anchored sections stop below the floating navigation. */
+[id] {
+  scroll-margin-top: 6rem;
+}
+
+/* A faint grain over the paper, so flat surfaces do not look digital. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Scroll reveal (components/Motion.tsx): a heavy fade up as a section enters the viewport. */
+.reveal {
+  opacity: 0;
+  transform: translateY(4rem);
+  filter: blur(12px);
+  transition:
+    opacity 900ms var(--ease-fluid),
+    transform 900ms var(--ease-fluid),
+    filter 900ms var(--ease-fluid);
+}
+
+.reveal[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-}
 
-/* Anchored sections stop below the sticky header. */
-[id] {
-  scroll-margin-top: 5rem;
+  .reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
 }

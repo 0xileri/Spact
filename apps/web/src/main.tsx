@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 
 import { App } from "./App.js";
 import { ConfigError, parseSiteConfig } from "./config.js";
-import "@fontsource-variable/inter";
+import "@fontsource-variable/geist-mono";
 import "@fontsource-variable/space-grotesk";
 import "./index.css";
 
