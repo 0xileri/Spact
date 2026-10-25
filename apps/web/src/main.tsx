@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 
 import { App } from "./App.js";
 import { ConfigError, parseSiteConfig } from "./config.js";
+import "@fontsource-variable/space-grotesk";
 import "./index.css";
 
 const root = createRoot(document.getElementById("root") as HTMLElement);

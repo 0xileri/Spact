@@ -88,7 +88,7 @@ export function SecurityLab({ reportUrl }: { reportUrl: string }) {
 
   const intro = (
     <div>
-      <h1 className="text-lg font-semibold">Security Lab</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight">Security Lab</h1>
       <p className="mt-1 max-w-3xl text-sm leading-relaxed text-slate-600">
         Each row is an attack from the spec and the tests that try it. A row passes on a local chain only if every listed test ran and
         passed, and at least one of them checks real chain state on a local NEAR node. These tests use a throwaway sandbox chain and test
@@ -134,7 +134,7 @@ export function SecurityLab({ reportUrl }: { reportUrl: string }) {
         {(Object.keys(STATUS) as CaseStatus[]).map((s) => (
           <Card key={s} className="p-4">
             <p className="text-xs font-medium text-slate-500">{STATUS[s].label}</p>
-            <p className="mt-1 text-lg font-semibold" data-testid={`count-${s}`}>
+            <p className="mt-1 font-display text-2xl font-semibold" data-testid={`count-${s}`}>
               {counts[s]}
               <span className="ml-1 text-xs font-normal text-slate-500">of {cases.length}</span>
             </p>

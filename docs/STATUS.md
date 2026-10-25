@@ -19,13 +19,13 @@ Last updated 2026-10-25 (UTC). Network mode so far: **local sandbox and NEAR tes
 |---|---|---|
 | 1 | single owner + agent + one NEP-141 token | local tested (sandbox); deployed on testnet (see below) |
 | 2 | policy with auto, daily and per-tx limits, allowlists, pause | local tested |
-| 3 | agent requests via API/MCP; contract rejects unsafe requests | MCP server: local tested (sandbox, over stdio; Claude Code connects); **API not built** |
+| 3 | agent requests via API/MCP; contract rejects unsafe requests | MCP server: local tested (sandbox, over stdio) and **run on testnet from Claude Code** (paid, held for approval, blocked; see below); **API not built** |
 | 4 | auto payment executes with on-chain receipt | local tested (sandbox); on testnet the deploy script's `demo-auto-1` (3 TUSD) was paid by the agent's restricted key |
 | 5 | larger payment awaits approval; Telegram notice | local tested: the notifier alerts on sandbox, then follows up when paid; **real Telegram delivery untested** (mock Bot API; api.telegram.org unreachable here) |
 | 6 | owner wallet approves the exact request; executes once | local tested in a real browser (sandbox, dev signer); **testnet: the owner approved and paid `demo-approve-1` (25 TUSD) with Meteor Wallet on the hosted site**, and the page showed "Confirmed on chain" (owner's report, 2026-10-25). Other wallets untested |
 | 7 | dashboard | local tested in a real browser (sandbox): balance, budget, open requests and activity match the chain; inconsistent budget data from the RPC is flagged; no tx hashes (no indexer) |
 | 8 | Security Lab, at least 6 negative tests | local tested: generated report and page; 13 of 18 cases pass on a local chain, 3 in unit tests only, 2 are P1 (THREAT_MODEL.md); CI builds the report and publishes it with the site to GitHub Pages from main (ADR-023) |
-| 9 | public app, README, video, submission | public repo; site live at https://0xileri.github.io/Spact/ for the testnet vault; README in progress; video and submission not started |
+| 9 | public app, README, video, submission | public repo; site live at https://0xileri.github.io/Spact/ for the testnet vault, with a landing page and brand (ADR-024); README in progress; video and submission not started |
 
 ## Testnet deployment (2026-10-25)
 
@@ -46,6 +46,19 @@ Deployed by the owner with `scripts/deploy-testnet.sh spact-ileri2.testnet 0xile
 - **Approval:** `demo-approve-1` was approved and paid from https://0xileri.github.io/Spact/?request=demo-approve-1 with Meteor Wallet. The transaction hash is not recorded here yet; the vault's explorer page lists it.
 - **Not checked from the build environment:** testnet is unreachable from here, so the facts above come from the owner's terminal output and wallet.
 - **First attempt:** an earlier run with deployer `spact-ileri.testnet` used a placeholder owner name (`ileri-owner.testnet`) instead of the owner's wallet account. That vault cannot be approved by the owner and is abandoned; it holds only test tokens. The script now refuses an owner account that does not exist, and a deployer that was used before, before it builds or spends anything.
+- **Agent on testnet (2026-10-25):** Claude Code 2.1.310 in WSL Ubuntu, with the MCP server registered by `claude mcp add` (local scope) using the restricted key file and `SPACT_APPROVAL_URL=https://0xileri.github.io/Spact/`. Results as reported by Claude Code and the owner:
+
+  | Request | Amount | Result |
+  |---|---|---|
+  | `agent-auto-1` | 5 TUSD | `AUTO_APPROVED`, `SETTLED`: [`FCHU8BxD…`](https://testnet.nearblocks.io/txns/FCHU8BxDHkerijBpSKo8j7BVEZLdnppbixvYbDhU1Y1N). The tool was not loaded in that session (see below), so Claude started the built server from a script and called `request_payment` through it; the server's startup checks passed first |
+  | `agent-approve-1` | 12 TUSD | through the MCP tool: `OWNER_APPROVAL_REQUIRED` with the review link, request transaction [`7VpgQUxR…`](https://testnet.nearblocks.io/txns/7VpgQUxRwkBt7na3w4w5EMkxGnjUZQYNF5na1koSrQKc); then `SETTLED` after the owner approved it as `0xileri.testnet` on the site |
+  | `agent-blocked-1` | 5 TUSD to `evil.testnet` | `BLOCKED`, `RECIPIENT_NOT_ALLOWED`; nothing stored or sent |
+  | `agent-pay-1` | 1 TUSD | `SETTLED` under the auto limit |
+
+- **What the agent run showed:**
+  - *Lost registration.* The first `claude mcp add` ran before Claude Code's first-run setup, and was gone after it (`claude mcp get spact` found nothing). Adding it again after the setup stuck. apps/mcp/README.md now says to finish the setup first.
+  - *The vault is the boundary, not the tool.* Without the tool, Claude in auto mode reached the vault anyway by running the server from Bash. It could only do what the restricted key and the vault allow, which is the design (THREAT_MODEL).
+  - *A confusing "Confirmed".* After the first approval attempt the owner saw "Confirmed on chain" while the vault still showed the request waiting. Reopening the link fresh, the approval went through. The page only prints that banner after reading the request as settled, so the likeliest cause is an older tab from `demo-approve-1`. This was not reproduced.
 - **Build reproducibility:** the same source built in this environment gives `70803e02…` instead of `bb664f2a…`. The wasm embeds build-machine paths (e.g. `/root/.cargo/registry/...`). Remapping that one path did not reproduce the deployed hash, so another difference remains. Anyone checking the deployed code against the source cannot do it bit for bit yet.
 
 ## Tests (last run 2026-10-24; deploy rehearsal 2026-10-25)
@@ -55,17 +68,19 @@ Deployed by the owner with `scripts/deploy-testnet.sh spact-ileri2.testnet 0xile
 | `scripts/test-contracts.sh` | vault unit 51 passed; mock-ft unit 1 passed; sandbox 10 passed |
 | `cargo clippy --workspace --all-targets -- -D warnings` (in `contracts/`) | clean |
 | `cargo fmt --all --check` | clean |
-| `pnpm lint && pnpm typecheck && pnpm test && pnpm build` | clean; shared 19 passed, web 23 passed, mcp 24 passed, notifier 27 passed, security-lab 8 passed |
+| `pnpm lint && pnpm typecheck && pnpm test && pnpm build` | clean; shared 19 passed, web 30 passed, mcp 24 passed, notifier 27 passed, security-lab 8 passed |
 | `scripts/security-report.sh` (every suite, then the report) | 180 tests in 10 suites passed; report: 13 cases passed on a local chain, 3 unit only (T07, T10, T15), 2 not covered (T13, T14, P1) |
 | `pnpm notifier:sandbox` (built notifier, local sandbox, mock Bot API) | 4 passed: links only the private chat with the terminal's code (group, wrong code and forged button ignored); alert with exact terms and the approval page as the only link; follow-up after the owner approves and pays; after a restart no repeats, and a new request is alerted with the link in its note defanged |
 | `pnpm mcp:sandbox` (built MCP server over stdio, local sandbox) | 11 passed: two tools only; auto payment settles; larger request waits, then is paid after the owner approves; hard cap blocked; T18 prompt-injected request to an unlisted account blocked; duplicate id not paid twice; bad input sends nothing; startup refused with a full-access key, a key for another contract, or a missing key |
-| `pnpm e2e` (Chromium, local sandbox; the agent signs with its function-call key) | 14 passed: the production build under `/Spact/` with no vault serves the Security Lab, says no vault is connected elsewhere, and makes no request outside its own host; inside a frame neither site draws anything to click; the Security Lab page shows cases, evidence and the CI run link; a report that contradicts its own evidence is not believed; a missing or broken report is named as such; dashboard matches the chain (balance, budget, waiting request, activity rows); a tampered budget is flagged instead of shown; approve and pay, reject, altered recipient flagged, forged hash refused by the vault, non-owner blocked, foreign-vault link refused, open-request list |
+| `pnpm e2e` (Chromium, local sandbox; the agent signs with its function-call key) | 16 passed: the landing page states the vault's limits as read from its policy, its live numbers match the chain and the newest request comes first, and it fits a 390 px screen; the production build under `/Spact/` with no vault serves the landing page and the Security Lab, says no vault is connected elsewhere, carries share-card tags with absolute URLs, serves its image, and makes no request outside its own host; inside a frame neither site draws anything to click; the Security Lab page shows cases, evidence and the CI run link; a report that contradicts its own evidence is not believed; a missing or broken report is named as such; dashboard matches the chain (balance, budget, waiting request, activity rows); a tampered budget is flagged instead of shown; approve and pay, reject, altered recipient flagged, forged hash refused by the vault, non-owner blocked, foreign-vault link refused, open-request list |
 
 Manual check on a testnet build: the near-connect wallet selector opens with no page errors and lists Meteor, Intear, Ledger, Nightly, Ethereum wallets and NEAR CLI (2026-10-24).
 
 GitHub Actions `ci` run 1 (commit `8b91f83`) passed both jobs. The contracts job ran all 8 sandbox tests on the hosted runner without the rlimit shim.
 
 Measured: an auto payment (request + ft_transfer + callback) burnt about 7 Tgas in sandbox.
+
+Landing page and brand (2026-10-25): `/` is now a landing page (DECISIONS ADR-024). It says what Spact is, states the three outcomes in the configured vault's own limits read from its policy, shows live numbers from chain and the Security Lab counts from the CI report. The dashboard moved to `?page=overview`; approval links are unchanged. Brand: ink on paper, the outcomes as signal colors (paid, waits, blocked), a gate logo, Space Grotesk bundled with the site, favicons and a share card rendered by `apps/web/dev/render-brand.ts`. Checked by screenshot at 1280 and 390 px.
 
 Deploy script checks (2026-10-25): before building or spending anything, `scripts/deploy-testnet.sh` now stops if the owner account does not exist or the deployer was used before. It also passes `--signature-scheme ed25519`, because near-cli-rs 0.30.1 asks in a terminal and the agent's MCP server reads only ed25519 keys. `scripts/rehearse-deploy-sandbox.sh` passed 12 checks: a missing owner refused before building, the full deploy, a second run with the same deployer refused before building, the refused NEAR transfer, and the eight chain checks. With a fake RPC that answers an error, the account check stops the script instead of reading the error as "no account".
 
@@ -81,7 +96,7 @@ Telegram notifier (2026-10-24): `apps/notifier` alerts the owner when a payment 
 
 Rename (2026-10-24): the project is now Spact (DECISIONS ADR-019), including the hash domain and event standard. After the rename all suites passed again: contracts (51 unit, 1 mock-ft, 10 sandbox), TypeScript (shared 19, web 14, mcp 24), `pnpm e2e` 7, `pnpm mcp:sandbox` 11, and the deploy rehearsal's 10 checks.
 
-MCP server (2026-10-24): `apps/mcp` gives the agent `request_payment` and `get_payment_status` over stdio, signed with its function-call key (DECISIONS ADR-018). With an isolated config, `claude mcp add` plus `claude mcp list` (Claude Code 2.1.310) showed the sandbox server as `Connected`. Codex was not available here to try.
+MCP server (2026-10-24; testnet 2026-10-25, see "Testnet deployment"): `apps/mcp` gives the agent `request_payment` and `get_payment_status` over stdio, signed with its function-call key (DECISIONS ADR-018). With an isolated config, `claude mcp add` plus `claude mcp list` (Claude Code 2.1.310) showed the sandbox server as `Connected`. Codex was not available here to try.
 
 Agent key (2026-10-24): the agent now signs with a function-call key that reaches only the vault's `request_direct_payment` and `execute_request` (DECISIONS ADR-017). Sandbox tests `t19_*` and `t20_*` show that it works for requests and execution, and that the protocol rejects everything else: other contracts, other vault methods, deposits, NEAR transfers, adding keys, deleting the account, and use after the allowance runs out. The rehearsal now runs the deploy script's own key step and passes ten checks: the key's receiver, methods and allowance, a refused NEAR transfer, and the six earlier ones. Two agent requests used 0.00092 NEAR of the 0.25 NEAR allowance.
 
@@ -100,4 +115,6 @@ Agent key (2026-10-24): the agent now signs with a function-call key that reache
 
 Record the `demo-approve-1` approval transaction hash here (testnet).
 
-Then, on the owner's machine: add the MCP server to Claude Code with the testnet values (apps/mcp/README.md), ask it to pay `api.spact-ileri2.testnet`, and record the transaction here. With a bot from @BotFather, run the notifier (apps/notifier/README.md) and check that the alert arrives on the phone.
+Record the approval transaction hashes for `demo-approve-1` and `agent-approve-1` here, if the owner has them.
+
+Then, on the owner's machine: with a bot from @BotFather, run the notifier (apps/notifier/README.md) against the testnet vault and check that the alert arrives on the phone.

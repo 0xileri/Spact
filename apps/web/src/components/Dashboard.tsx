@@ -247,7 +247,7 @@ export function Dashboard({ config }: { config: AppConfig }) {
     <div className="space-y-6" data-testid="dashboard">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold">Vault overview</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Vault overview</h1>
           <p className="text-xs text-slate-500">
             Chain time {formatUtc(nowNs.toString())}. Refreshes every {REFRESH_MS / 1000} s.
           </p>

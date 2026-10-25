@@ -9,7 +9,7 @@ async function serveReport(page: Page, body: string, status = 200) {
 test("the Security Lab shows each attack, the tests behind it, and where the results come from", async ({ page }) => {
   await serveReport(page, JSON.stringify(REPORT));
   await page.goto("/");
-  await page.getByRole("link", { name: "Security Lab" }).click();
+  await page.getByRole("navigation", { name: "Pages" }).getByRole("link", { name: "Security Lab" }).click();
 
   await expect(page.getByTestId("security-lab")).toBeVisible();
   await expect(page.getByTestId("lab-source").getByRole("link", { name: "CI run on GitHub Actions" })).toHaveAttribute("href", RUN);

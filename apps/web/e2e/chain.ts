@@ -54,6 +54,17 @@ export function chain(f: Fixture = fixture()) {
       if (!b) throw new Error("get_budget returned nothing");
       return b;
     },
+    /** The first token's limits in the vault's policy. */
+    async policy(): Promise<{ auto_limit: string; hard_tx_limit: string; daily_limit: string }> {
+      const p = await provider.callFunction<{ tokens: { auto_limit: string; hard_tx_limit: string; daily_limit: string }[] }>({
+        contractId: f.vault_id,
+        method: "get_policy",
+        args: {},
+      });
+      const first = p?.tokens[0];
+      if (!first) throw new Error("get_policy returned no tokens");
+      return first;
+    },
     async balance(accountId: string): Promise<bigint> {
       const raw = await provider.callFunction<string>({ contractId: f.token_id, method: "ft_balance_of", args: { account_id: accountId } });
       if (typeof raw !== "string") throw new Error(`ft_balance_of returned ${String(raw)}`);

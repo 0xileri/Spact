@@ -15,6 +15,8 @@ export interface AppConfig {
   securityReportUrl: string;
   /** Local dev signer, sandbox only. */
   devSignerUrl: string | null;
+  /** Public source repository, linked from the landing page; https only. null hides the links. */
+  repoUrl: string | null;
 }
 
 /** A build without a vault yet: only the Security Lab works. */
@@ -93,7 +95,14 @@ function parseCommon(env: Record<string, string | undefined>): Omit<AppConfig, "
     if (url.protocol !== "https:" && !isLocalHost(url)) throw new ConfigError("VITE_SECURITY_REPORT_URL must use https");
   }
 
-  return { network, rpcUrl: rpc.toString(), explorerTxUrl, explorerAccountUrl, securityReportUrl, devSignerUrl };
+  let repoUrl: string | null = null;
+  if (env.VITE_REPO_URL) {
+    const url = parseUrl(env.VITE_REPO_URL, "VITE_REPO_URL");
+    if (url.protocol !== "https:") throw new ConfigError("VITE_REPO_URL must use https");
+    repoUrl = url.toString().replace(/\/$/, "");
+  }
+
+  return { network, rpcUrl: rpc.toString(), explorerTxUrl, explorerAccountUrl, securityReportUrl, devSignerUrl, repoUrl };
 }
 
 export function parseConfig(env: Record<string, string | undefined>): AppConfig {

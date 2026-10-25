@@ -2,6 +2,8 @@
 
 *Autonomous spending. Human rules.*
 
+![Spact: a spending firewall for AI agents on NEAR. Paid at once, waits for your wallet, or blocked.](apps/web/public/og-image.png)
+
 Spact is a payment-policy firewall for AI agents on NEAR. An agent asks a NEAR vault contract to pay someone. The contract enforces the owner's limits on-chain. Anything above the auto limit waits until the owner approves that exact payment from their wallet.
 
 > **Unaudited hackathon prototype.** Local sandbox only so far. Do not use with real funds.
@@ -22,10 +24,10 @@ A wallet key can spend everything. A NEAR function-call key restricts which meth
 | Vault contract (`contracts/spact-vault`) | built, 51 unit tests |
 | Real-chain tests on a NEAR sandbox node (`contracts/integration-tests`) | 10 passing: auto payment, approval flow, parallel split, failed transfer, private callback, agent bypass attempts, init front-run, pause/recovery, the agent's restricted key |
 | Shared TS package: request hash, exact amounts, contract JSON schemas, reason codes, RPC client (`packages/shared`) | built, 19 tests; hash matches Rust and an independent Python vector |
-| Owner dashboard and approval page (`apps/web`) | built, 23 unit tests and 14 browser tests on a local chain, including tampered RPC answers and framing |
+| Landing page, owner dashboard and approval page (`apps/web`) | built, 30 unit tests and 16 browser tests on a local chain, including tampered RPC answers and framing |
 | Hosted site (GitHub Pages, from main) | live at https://0xileri.github.io/Spact/, reading the testnet vault |
 | Security Lab report and page (`packages/security-lab`, `?page=security`) | built: 13 of 18 attack cases pass on a local chain, 3 in unit tests only, 2 wait for P1 |
-| Agent MCP server for Claude Code / Codex (`apps/mcp`) | built, 24 unit tests and 11 tests over stdio on a local chain |
+| Agent MCP server for Claude Code / Codex (`apps/mcp`) | built, 24 unit tests and 11 tests over stdio on a local chain; run on testnet from Claude Code (paid, held for approval, blocked) |
 | Local demo with no wallet or testnet needed (`scripts/dev-sandbox.sh`) | works |
 | Testnet deploy script (`scripts/deploy-testnet.sh`) | ran on testnet on 2026-10-25: `vault.spact-ileri2.testnet` |
 | Signing with a real wallet | done on testnet with Meteor Wallet: the owner approved and paid the 25 TUSD demo request on the hosted site. Other wallets untested |
@@ -36,7 +38,7 @@ Details: [docs/STATUS.md](docs/STATUS.md). Security mapping: [docs/THREAT_MODEL.
 
 ## Let Claude Code or Codex pay
 
-`apps/mcp` is an MCP server with two tools, `request_payment` and `get_payment_status`. It signs with the agent's function-call key and refuses to start with a full-access key. `scripts/dev-sandbox.sh` prints the `claude mcp add` and `codex mcp add` commands for the local chain. Then ask the agent to pay `api.test.near` 5 TUSD (paid at once) or 20 TUSD (it gets an approval link and waits for you). Setup for testnet: [apps/mcp/README.md](apps/mcp/README.md).
+`apps/mcp` is an MCP server with two tools, `request_payment` and `get_payment_status`. It signs with the agent's function-call key and refuses to start with a full-access key. `scripts/dev-sandbox.sh` prints the `claude mcp add` and `codex mcp add` commands for the local chain. Then ask the agent to pay `api.test.near` 5 TUSD (paid at once) or 20 TUSD (it gets an approval link and waits for you). Setup for testnet: [apps/mcp/README.md](apps/mcp/README.md). On testnet, Claude Code paid 5 TUSD at once, waited for the owner on 12 TUSD, and was blocked paying `evil.testnet` (docs/STATUS.md).
 
 ## Security Lab
 
@@ -62,7 +64,7 @@ The deploy script made two agent requests: 3 TUSD, paid automatically, and 25 TU
 
 ## Hosted site
 
-After every job passes on main, CI publishes the site to GitHub Pages at https://0xileri.github.io/Spact/, with the Security Lab report from that same run. Nobody uploads the report by hand. A build without a vault id is the Security Lab alone; the overview and approval links then say that no vault is connected.
+After every job passes on main, CI publishes the site to GitHub Pages at https://0xileri.github.io/Spact/, with the Security Lab report from that same run. `/` is a landing page that states the vault's limits as read from its policy and shows live numbers from chain; the owner dashboard is `?page=overview`, the Security Lab `?page=security`, and approval links stay `?request=<id>`. Nobody uploads the report by hand. A build without a vault id is the Security Lab alone; the overview and approval links then say that no vault is connected.
 
 Repository settings this needs: Settings → Pages → Source **GitHub Actions** (once), and the repository variable `VITE_VAULT_ID` (Settings → Secrets and variables → Actions → Variables) set to the vault id, now `vault.spact-ileri2.testnet`. After changing it, re-run the workflow on main. `VITE_NEAR_NETWORK` defaults to `testnet` and `VITE_NEAR_RPC_URL` to `https://test.rpc.fastnear.com`. These are public values, not secrets.
 
@@ -84,7 +86,7 @@ scripts/dev-sandbox.sh
 3. Click **Approve and pay**. You see **Confirmed on chain: approved and paid** with a transaction hash, the status turns **Paid**, and the budget drops to **22 TUSD of 50**.
 4. Open http://localhost:5173/, the dashboard. The demo request is gone from **Waiting for your decision**, it shows as **Paid** under **Agent activity**, and the TUSD card shows **22 TUSD of 50 TUSD left today** and **Vault holds 972 TUSD**.
 
-To watch the attacks fail, run `pnpm e2e`. It drives Chromium against the same local setup, and you see `14 passed`. Three of those tests rewrite the RPC response on its way to the page:
+To watch the attacks fail, run `pnpm e2e`. It drives Chromium against the same local setup, and you see `16 passed`. Three of those tests rewrite the RPC response on its way to the page:
 
 - **Recipient changed, hash kept:** the page shows **Hash check failed: do not approve** and the approve button is disabled.
 - **Recipient and hash both forged:** the page shows the attacker's terms with a passing check, the owner approves, and the vault refuses with `HASH_MISMATCH`. The test then reads the chain directly: nothing moved and the request still awaits approval.
@@ -115,7 +117,7 @@ pnpm install --frozen-lockfile
 pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ```
 
-Expected: `51 passed` (vault unit), `1 passed` (mock token), `10 passed` (sandbox), `19 passed` (shared), `23 passed` (web), `24 passed` (mcp), `27 passed` (notifier) and `8 passed` (security-lab). `pnpm mcp:sandbox` runs the MCP server over stdio against a local chain: `11 passed`. `pnpm notifier:sandbox` runs the notifier against a local chain and a mock Bot API: `4 passed`. The first sandbox run downloads the NEAR sandbox node binary.
+Expected: `51 passed` (vault unit), `1 passed` (mock token), `10 passed` (sandbox), `19 passed` (shared), `30 passed` (web), `24 passed` (mcp), `27 passed` (notifier) and `8 passed` (security-lab). `pnpm mcp:sandbox` runs the MCP server over stdio against a local chain: `11 passed`. `pnpm notifier:sandbox` runs the notifier against a local chain and a mock Bot API: `4 passed`. The first sandbox run downloads the NEAR sandbox node binary.
 
 On testnet or mainnet the page uses a real wallet through near-connect. Configure it with `apps/web/.env.example`.
 

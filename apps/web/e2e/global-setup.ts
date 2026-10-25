@@ -66,7 +66,15 @@ export default async function globalSetup() {
   const pagesDir = mkdtempSync(join(tmpdir(), "spact-pages-"));
   execFileSync("pnpm", ["exec", "vite", "build", "--outDir", pagesDir, "--emptyOutDir", "--logLevel", "warn"], {
     cwd: WEB,
-    env: { ...process.env, VITE_NEAR_NETWORK: "testnet", VITE_NEAR_RPC_URL: "https://rpc.invalid", VITE_VAULT_ID: "", VITE_DEV_SIGNER_URL: "" },
+    env: {
+      ...process.env,
+      VITE_NEAR_NETWORK: "testnet",
+      VITE_NEAR_RPC_URL: "https://rpc.invalid",
+      VITE_VAULT_ID: "",
+      VITE_DEV_SIGNER_URL: "",
+      VITE_SITE_URL: "https://example.test/Spact",
+      VITE_REPO_URL: "https://example.test/repo",
+    },
     stdio: "inherit",
   });
   // a report from a local run (public/) must not stand in for the one each test serves
