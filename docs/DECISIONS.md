@@ -129,7 +129,7 @@ GitHub Pages cannot send response headers, so there is no `frame-ancestors` head
 - [x] Official `HACKATHON.md`: added at the repo root (owner copy, 2026-10-23).
 - [ ] Eligibility of pre-window code (ADR-000).
 - [ ] Demo stablecoin on testnet/mainnet: token id, decimals, storage behavior, 1Click support.
-- [ ] Testnet/mainnet protocol version >= 84 for rustc 1.97 output (see INTEGRATIONS.md).
+- [ ] Mainnet protocol version >= 84 for rustc 1.97 output (see INTEGRATIONS.md). Testnet: protocol 88, and the vault runs there (2026-10-25).
 - [ ] Vault account key policy: keep offline, delete after deploy, or a controlled upgrade path.
 - [ ] Agent account full-access key on mainnet: keep offline (testnet choice, ADR-017) or delete it and plan allowance top-ups.
 - [ ] Reconciliation for a stuck TRANSFER_PENDING (callback out of gas).
@@ -137,6 +137,7 @@ GitHub Pages cannot send response headers, so there is no `frame-ancestors` head
 - [ ] 1Click quote authenticity and deposit semantics (P1).
 - [x] Telegram chat binding flow: one-time code on the operator's terminal (ADR-020). Open: a wallet-signed binding.
 - [x] Hosting: GitHub Pages from main, with the CI-built report (ADR-023). Open: a Content-Security-Policy, and real `frame-ancestors` headers, which need another host.
-- [ ] A trusted RPC endpoint for testnet/mainnet.
+- [ ] A trusted RPC endpoint for testnet/mainnet. The site uses `https://test.rpc.fastnear.com` on testnet for now.
+- [ ] Reproducible vault build, so anyone can match the deployed code hash to the source (STATUS: "Build reproducibility").
 - [ ] License (MIT or Apache-2.0).
 - [ ] NEAR payout account and project description for the form (owner-provided).

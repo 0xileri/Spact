@@ -23,12 +23,12 @@ A wallet key can spend everything. A NEAR function-call key restricts which meth
 | Real-chain tests on a NEAR sandbox node (`contracts/integration-tests`) | 10 passing: auto payment, approval flow, parallel split, failed transfer, private callback, agent bypass attempts, init front-run, pause/recovery, the agent's restricted key |
 | Shared TS package: request hash, exact amounts, contract JSON schemas, reason codes, RPC client (`packages/shared`) | built, 19 tests; hash matches Rust and an independent Python vector |
 | Owner dashboard and approval page (`apps/web`) | built, 23 unit tests and 14 browser tests on a local chain, including tampered RPC answers and framing |
-| Hosted site (GitHub Pages, from main) | deploy job set up; first deploy after Pages is turned on. Security Lab only until a testnet vault exists |
+| Hosted site (GitHub Pages, from main) | live at https://0xileri.github.io/Spact/, reading the testnet vault |
 | Security Lab report and page (`packages/security-lab`, `?page=security`) | built: 13 of 18 attack cases pass on a local chain, 3 in unit tests only, 2 wait for P1 |
 | Agent MCP server for Claude Code / Codex (`apps/mcp`) | built, 24 unit tests and 11 tests over stdio on a local chain |
 | Local demo with no wallet or testnet needed (`scripts/dev-sandbox.sh`) | works |
-| Testnet deploy script (`scripts/deploy-testnet.sh`) | rehearsed on a local node; not run on testnet yet |
-| Signing with a real wallet | not yet |
+| Testnet deploy script (`scripts/deploy-testnet.sh`) | ran on testnet on 2026-10-25: `vault.spact-ileri2.testnet` |
+| Signing with a real wallet | done on testnet with Meteor Wallet: the owner approved and paid the 25 TUSD demo request on the hosted site. Other wallets untested |
 | Telegram alert for the owner (`apps/notifier`) | built, 27 unit tests and 4 tests on a local chain against a mock Bot API; not yet tried with real Telegram |
 | NEAR Intents / 1Click cross-chain route | not yet (P1) |
 
@@ -46,11 +46,25 @@ scripts/security-report.sh
 
 This runs every suite, then builds `apps/web/public/security-report.json` from the runners' own output. Open `http://localhost:5173/?page=security` while `scripts/dev-sandbox.sh` is running. Each attack from AGENTS.md section 10 is listed with the exact tests behind it, their results and where they ran. The page also shows the commit, the run, and a sha256 of each raw output file. A case passes on a local chain only if every listed test passed and at least one ran against a NEAR node. The page recomputes that itself instead of trusting the file. In CI the same report is the `security-report` artifact of each run.
 
+## Live on testnet
+
+**Testnet only. TUSD is a test token with no value. Unaudited prototype.**
+
+| | |
+|---|---|
+| Site (overview, approvals, Security Lab) | https://0xileri.github.io/Spact/ |
+| Vault | [`vault.spact-ileri2.testnet`](https://testnet.nearblocks.io/address/vault.spact-ileri2.testnet), code hash `bb664f2a1b19734e5bbb8f01372d737fcc724ae008be284603c7dd4dc191c81c` |
+| Owner (approves in Meteor Wallet) | [`0xileri.testnet`](https://testnet.nearblocks.io/address/0xileri.testnet) |
+| Agent (function-call key for two vault methods only) | [`agent.spact-ileri2.testnet`](https://testnet.nearblocks.io/address/agent.spact-ileri2.testnet) |
+| Test token / payee | [`tusd.spact-ileri2.testnet`](https://testnet.nearblocks.io/address/tusd.spact-ileri2.testnet) / [`api.spact-ileri2.testnet`](https://testnet.nearblocks.io/address/api.spact-ileri2.testnet) |
+
+The deploy script made two agent requests: 3 TUSD, paid automatically, and 25 TUSD, which the owner approved and paid from the site with Meteor Wallet. The code hash is from the owner's build; a build on another machine gives a different hash for now (docs/STATUS.md).
+
 ## Hosted site
 
-After every job passes on main, CI publishes the site to GitHub Pages at https://0xileri.github.io/Spact/, with the Security Lab report from that same run. Nobody uploads the report by hand. No vault is deployed yet, so for now the site is the Security Lab alone. The overview and approval links say that no vault is connected.
+After every job passes on main, CI publishes the site to GitHub Pages at https://0xileri.github.io/Spact/, with the Security Lab report from that same run. Nobody uploads the report by hand. A build without a vault id is the Security Lab alone; the overview and approval links then say that no vault is connected.
 
-Repository settings this needs: Settings → Pages → Source **GitHub Actions** (once). After the testnet deploy, set the repository variable `VITE_VAULT_ID` to the vault id (Settings → Secrets and variables → Actions → Variables) and re-run the workflow on main. `VITE_NEAR_NETWORK` defaults to `testnet` and `VITE_NEAR_RPC_URL` to `https://test.rpc.fastnear.com`. These are public values, not secrets.
+Repository settings this needs: Settings → Pages → Source **GitHub Actions** (once), and the repository variable `VITE_VAULT_ID` (Settings → Secrets and variables → Actions → Variables) set to the vault id, now `vault.spact-ileri2.testnet`. After changing it, re-run the workflow on main. `VITE_NEAR_NETWORK` defaults to `testnet` and `VITE_NEAR_RPC_URL` to `https://test.rpc.fastnear.com`. These are public values, not secrets.
 
 ## Get a Telegram alert
 
@@ -78,15 +92,15 @@ To watch the attacks fail, run `pnpm e2e`. It drives Chromium against the same l
 
 ## Deploy to testnet
 
-`scripts/deploy-testnet.sh` uses only commands from the NEAR docs. It was rehearsed end to end against a local node (`scripts/rehearse-deploy-sandbox.sh`), but has **not been run on testnet yet**.
+`scripts/deploy-testnet.sh` uses only commands from the NEAR docs. It ran on testnet on 2026-10-25 (from WSL Ubuntu on Windows) and is rehearsed end to end against a local node (`scripts/rehearse-deploy-sandbox.sh`). It needs bash, so on Windows run it in WSL.
 
-1. Install near-cli-rs: `npm install -g near-cli-rs@latest` (other options: https://docs.near.org/tools/cli#installation).
-2. Create the **owner** account in a wallet listed at https://wallet.near.org. Pick a `.testnet` account; this is the account that approves payments.
+1. Install rustup, a C toolchain (`sudo apt install build-essential` on Ubuntu), Node 22.12+ and near-cli-rs: `npm install -g near-cli-rs@latest` (other options: https://docs.near.org/tools/cli#installation).
+2. Create the **owner** account in a wallet. Pick a `.testnet` account; this is the account that approves payments. Meteor Wallet works (https://wallet.meteorwallet.app, switched to testnet). It needs a little testnet NEAR for gas: `near tokens <name>.testnet send-near <owner>.testnet 1NEAR network-config testnet sign-with-legacy-keychain send` after step 3.
 3. Create a **deployer** account. Its key lands in `~/.near-credentials`:
    `near account create-account sponsor-by-faucet-service <name>.testnet autogenerate-new-keypair save-to-legacy-keychain network-config testnet create`
    The script spends about 6.6 testnet NEAR. Contract code alone locks about 4.3 NEAR, at roughly 1 NEAR per 100 KB. Top up from https://docs.near.org/getting-started/faucet if needed.
-4. Run `scripts/deploy-testnet.sh <name>.testnet <owner>.testnet`. You see `protocol version N` (it refuses below 84), then one confirmation per step. It ends with the vault id, its code hash, the agent's key files, and three `VITE_` lines. The agent's two demo requests are signed with a function-call key that can call only `request_direct_payment` and `execute_request` on the vault. That key goes in `~/.near-credentials/spact/agent.<name>.testnet.json`. The agent account's full-access key stays in your keychain; don't give it to the agent.
-5. Put those lines in `apps/web/.env.local` and run `pnpm --filter @spact/web dev`. Open `http://localhost:5173/?request=demo-approve-1` and connect the owner wallet. Click **Approve and pay** and confirm in the wallet. You see **Confirmed on chain: approved and paid**, with a link to testnet.nearblocks.io.
+4. Run `scripts/deploy-testnet.sh <name>.testnet <owner>.testnet`. You see `protocol version N` (it refuses below 84). It stops before building or spending anything if the owner account does not exist, or if this deployer was used before. Then you see one confirmation per step. It ends with the vault id, its code hash, the agent's key files, and three `VITE_` lines. The agent's two demo requests are signed with a function-call key that can call only `request_direct_payment` and `execute_request` on the vault. That key goes in `~/.near-credentials/spact/agent.<name>.testnet.json`. The agent account's full-access key stays in your keychain; don't give it to the agent.
+5. Set the repository variable `VITE_VAULT_ID` (see "Hosted site") and re-run the workflow, or put those lines in `apps/web/.env.local` and run `pnpm --filter @spact/web dev`. Open `?request=demo-approve-1` on the site (locally `http://localhost:5173/?request=demo-approve-1`) and connect the owner wallet within 24 hours, before the request expires. Click **Approve and pay** and confirm in the wallet. You see **Confirmed on chain: approved and paid**, with a link to testnet.nearblocks.io.
 
 ## Run the tests
 
