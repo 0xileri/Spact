@@ -1,7 +1,7 @@
 import type { FtMetadata, PaymentRequest, TokenPolicy } from "@spact/shared";
 import { describe, expect, it } from "vitest";
 
-import { GENERIC_RULES, liveCounts, outcomeRules } from "../src/landing.js";
+import { GENERIC_GATE, GENERIC_RULES, gateExample, liveCounts, outcomeRules } from "../src/landing.js";
 import { shareImageTags } from "../src/shareTags.js";
 
 const TUSD: FtMetadata = { symbol: "TUSD", decimals: 6 };
@@ -45,6 +45,26 @@ describe("outcomeRules", () => {
   it("falls back to base units without token metadata, and to words without a vault", () => {
     expect(outcomeRules(policy, null).paid).toBe("Up to 10000000 base units");
     expect(GENERIC_RULES.blocked).toMatch(/not on your list/);
+  });
+});
+
+describe("gateExample", () => {
+  it("picks one amount per outcome from the vault's own limits", () => {
+    expect(gateExample(policy, TUSD)).toEqual({ paid: "3 TUSD", waits: "12 TUSD", blocked: "45 TUSD", auto: "10 TUSD", cap: "30 TUSD", example: false });
+  });
+
+  it("keeps each amount inside its outcome when the limits are close together", () => {
+    const tight = gateExample({ ...policy, auto_limit: "10000000", hard_tx_limit: "11000000" }, TUSD);
+    expect(tight).toMatchObject({ paid: "3 TUSD", waits: "10.5 TUSD", blocked: "16.5 TUSD" });
+    const tiny = gateExample({ ...policy, auto_limit: "1", hard_tx_limit: "2" }, { symbol: "T", decimals: 0 });
+    expect(tiny).toMatchObject({ paid: "1 T", waits: "2 T", blocked: "3 T" });
+  });
+
+  it("falls back to the labeled example when the policy has no three outcomes or no metadata", () => {
+    expect(gateExample({ ...policy, auto_limit: "0" }, TUSD)).toBe(GENERIC_GATE);
+    expect(gateExample({ ...policy, auto_limit: "30000000" }, TUSD)).toBe(GENERIC_GATE);
+    expect(gateExample(policy, null)).toBe(GENERIC_GATE);
+    expect(GENERIC_GATE.example).toBe(true);
   });
 });
 

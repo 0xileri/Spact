@@ -153,11 +153,19 @@ The owner pointed at [elayadesign/ai-design-skills](https://github.com/elayadesi
 
 - **Type.** One typeface, Space Grotesk, for headings and body; Inter is gone. Numbers, hashes and code use Geist Mono. Sizes come from Tailwind's type scale only, and spacing snaps to 2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 80 and 96 px.
 - **Color.** Unchanged: ink `#0b0f14`, paper `#f7f6f2`, surface `#fffefb`, line `#e7e4dc`, and the three signals (paid `#10b981`, waits `#f59e0b`, blocked `#f43f5e`). The only additions are a light ink-to-stone gradient on the hero headline and a 5% grain overlay.
-- **Motion.** One curve, `cubic-bezier(0.32, 0.72, 0, 1)`. Sections fade up once as they are reached and the tagline lights up word by word, both via IntersectionObserver, never a scroll listener. With `prefers-reduced-motion`, everything is shown at once.
-- **Layout.** A floating pill nav, asymmetric section grids, a vertical timeline for the three steps, a light Security Lab band, an FAQ, and a closing call to action. Icons are Phosphor (`@phosphor-icons/react` 2.1.10), tree-shaken.
+- **Motion.** One curve, `cubic-bezier(0.32, 0.72, 0, 1)`, for interface transitions. Sections fade up once as they are reached, via IntersectionObserver, never a scroll listener. With `prefers-reduced-motion`, everything is shown at once.
+- **Icons.** Phosphor (`@phosphor-icons/react` 2.1.10), tree-shaken.
 - **Missing pages.** A skip link, a Privacy and terms page (`?page=legal`) that says what the site does with data, and a branded 404 that Caddy serves for missing paths.
 
 What it left out: stock photos, testimonials and logos we do not have, invented numbers, and anything that would add a third-party request. Every number on the landing page is still read from the vault or the Security Lab report, and the hero's proof line says "in CI" only when the report came from CI.
+
+**Second pass: fewer sections, one moving graphic.** The owner found the first pass too busy, with too much on the page, and asked for one straightforward page with motion graphics. The skill's own scope lets the owner's explicit request win over its rules (the mandatory tagline and FAQ). The landing page is now three sections: the hero, the three rules, and the live vault. The comparison table, timeline, tagline, Security Lab band, FAQ, get-started terminal and closing call to action are gone. The Security Lab stays one link away, with its count in the hero.
+
+The hero's visual is `GateFlow`, an SVG animation built the way `design-to-motion` (same repo) describes website sections:
+- **The story.** It runs a 10 second loop of three requests. One is paid at once. One stops at the gate, the owner's wallet approves it, and it is paid. One meets a closed gate and is sent back.
+- **The numbers.** The amounts are picked from the vault's own limits (`gateExample` in `apps/web/src/landing.ts`). The figure says when they are only an example, which is when there is no vault or the policy has no three outcomes.
+- **How it runs.** The animation is CSS keyframes only, with no animation library. It pauses while off screen, through IntersectionObserver. With reduced motion it is a single still frame: the request waiting for the wallet.
+- **On a phone.** The graphic drops its legend and crops its viewBox so its labels stay readable, and the caption under it states the rule instead.
 
 ## Open questions (from AGENTS.md section 17)
 

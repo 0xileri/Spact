@@ -48,3 +48,30 @@ export function liveCounts(requests: PaymentRequest[], nowNs: bigint, stored: nu
     stored,
   };
 }
+
+/** Amounts for the hero animation: one payment for each outcome, and the two limits that decide them. */
+export interface GateExample {
+  paid: string;
+  waits: string;
+  blocked: string;
+  auto: string;
+  cap: string;
+  /** True when the numbers are a made up example, not this vault's limits. */
+  example: boolean;
+}
+
+export const GENERIC_GATE: GateExample = { paid: "3 TUSD", waits: "12 TUSD", blocked: "45 TUSD", auto: "10 TUSD", cap: "30 TUSD", example: true };
+
+/** One amount per outcome under this policy, or the generic example when the policy has no such three. */
+export function gateExample(policy: TokenPolicy, metadata: FtMetadata | null): GateExample {
+  const auto = parseU128(policy.auto_limit);
+  const cap = parseU128(policy.hard_tx_limit);
+  if (!metadata || auto === 0n || auto >= cap) return GENERIC_GATE;
+  const fmt = (units: bigint) => formatAmount(units.toString(), metadata);
+  const paid = (auto * 3n) / 10n || auto;
+  const above = (auto * 12n) / 10n;
+  const waits = above > auto && above <= cap ? above : (auto + cap + 1n) / 2n;
+  const over = (cap * 3n) / 2n;
+  const blocked = over > cap ? over : cap + 1n;
+  return { paid: fmt(paid), waits: fmt(waits), blocked: fmt(blocked), auto: fmt(auto), cap: fmt(cap), example: false };
+}
