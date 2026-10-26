@@ -1,7 +1,8 @@
 import { Robot } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { GateExample } from "../landing.js";
+import { useOnScreen } from "./Motion.js";
 import "./gateFlow.css";
 
 const NARROW = "(max-width: 639px)";
@@ -50,17 +51,8 @@ function RuleRow({ y, signal, text }: { y: number; signal: keyof typeof DOT; tex
  * and a still frame with reduced motion.
  */
 export function GateFlow({ example, source }: { example: GateExample; source: string }) {
-  const ref = useRef<HTMLElement>(null);
-  const [playing, setPlaying] = useState(false);
+  const [ref, playing] = useOnScreen<HTMLElement>();
   const compact = useNarrow();
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver((entries) => setPlaying(entries.some((e) => e.isIntersecting)), { threshold: 0.3 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
 
   const captions = [
     `${example.paid} is within the ${example.auto} auto limit. Paid at once.`,

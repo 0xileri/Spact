@@ -166,6 +166,7 @@ The hero's visual is `GateFlow`, an SVG animation built the way `design-to-motio
 - **The numbers.** The amounts are picked from the vault's own limits (`gateExample` in `apps/web/src/landing.ts`). The figure says when they are only an example, which is when there is no vault or the policy has no three outcomes.
 - **How it runs.** The animation is CSS keyframes only, with no animation library. It pauses while off screen, through IntersectionObserver. With reduced motion it is a single still frame: the request waiting for the wallet.
 - **On a phone.** The graphic drops its legend and crops its viewBox so its labels stay readable, and the caption under it states the rule instead.
+- **The rule cards.** Each card acts out its own outcome on a short track (`OutcomeMotion`): paid passes straight through, waits is tapped Approve, blocked meets a closed gate. The loops run 3.2, 5.2 and 3.8 seconds, so the cards never move in step. They follow the same rules: CSS only, paused off screen, a still frame with reduced motion.
 
 ## Open questions (from AGENTS.md section 17)
 

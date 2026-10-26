@@ -4,12 +4,13 @@ import { useEffect, useState, type ReactNode } from "react";
 import { explorerAccountLink, type AppConfig, type SiteConfig } from "../config.js";
 import { usedPercent } from "../dashboard.js";
 import { errorMessage, formatAmount } from "../format.js";
-import { GENERIC_GATE, GENERIC_RULES, gateExample, liveCounts, outcomeRules, type OutcomeRules } from "../landing.js";
+import { GENERIC_GATE, GENERIC_RULES, gateExample, liveCounts, outcomeRules, type GateExample, type OutcomeRules } from "../landing.js";
 import { loadDashboard, type DashboardSnapshot } from "../near/vault.js";
 import { loadSecurityReport, type LoadResult } from "../securityLab.js";
 import { SignalDot, type Signal } from "./Brand.js";
 import { GateFlow } from "./GateFlow.js";
 import { Reveal } from "./Motion.js";
+import { OutcomeMotion } from "./OutcomeMotion.js";
 import { Mono, Notice } from "./ui.js";
 
 /** Newest requests read for the live counts. */
@@ -66,7 +67,7 @@ const OUTCOMES: { signal: Signal; title: string; key: keyof OutcomeRules; after:
   { signal: "blocked", title: "Blocked", key: "blocked", after: "Refused on chain. Nothing is stored or sent." },
 ];
 
-function Outcomes({ rules, caption }: { rules: OutcomeRules; caption: string }) {
+function Outcomes({ rules, caption, example }: { rules: OutcomeRules; caption: string; example: GateExample }) {
   return (
     <section className="py-24" aria-labelledby="outcomes-title">
       <Container>
@@ -80,7 +81,10 @@ function Outcomes({ rules, caption }: { rules: OutcomeRules; caption: string }) 
             <li key={o.signal} data-outcome={o.signal}>
               <Reveal delay={i * 90} className="h-full">
                 <div className="h-full rounded-2xl border border-line bg-surface p-6">
-                  <p className="flex items-center gap-2 text-sm font-semibold">
+                  <div className="rounded-xl border border-line bg-paper px-2 py-3">
+                    <OutcomeMotion signal={o.signal} amount={example[o.signal]} />
+                  </div>
+                  <p className="mt-6 flex items-center gap-2 text-sm font-semibold">
                     <SignalDot signal={o.signal} />
                     {o.title}
                   </p>
@@ -298,7 +302,7 @@ export function Landing({ config }: { config: SiteConfig }) {
         </Container>
       </section>
 
-      <Outcomes rules={rules} caption={caption} />
+      <Outcomes rules={rules} caption={caption} example={example} />
       {vaultConfig ? <LiveSection config={vaultConfig} live={live} /> : <NoVaultSection />}
     </div>
   );

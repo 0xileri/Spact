@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 
 function reducedMotion(): boolean {
   return typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof IntersectionObserver === "undefined";
@@ -33,4 +33,18 @@ export function Reveal({ children, className = "", delay = 0 }: { children: Reac
       {children}
     </div>
   );
+}
+
+/** Whether at least `threshold` of the element is on screen, for loops that should stop off screen. */
+export function useOnScreen<T extends Element>(threshold = 0.3): [RefObject<T | null>, boolean] {
+  const ref = useRef<T>(null);
+  const [onScreen, setOnScreen] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => setOnScreen(entries.some((e) => e.isIntersecting)), { threshold });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [threshold]);
+  return [ref, onScreen];
 }

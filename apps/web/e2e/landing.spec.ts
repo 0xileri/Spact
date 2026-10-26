@@ -60,7 +60,7 @@ async function captionsAt(page: Page, ms: number): Promise<number[]> {
   }, ms);
 }
 
-test("the hero animation plays its three requests in turn, and stops while off screen", async ({ page }) => {
+test("the hero and the rule cards play their requests in turn, and stop while off screen", async ({ page }) => {
   await page.goto("/");
   const gate = page.getByTestId("gate-flow");
   await expect(gate).toHaveAttribute("data-playing", "true");
@@ -75,20 +75,32 @@ test("the hero animation plays its three requests in turn, and stops while off s
   // below the fold, sections wait for the reader, then fade in
   const firstRule = page.getByTestId("outcomes").locator(".reveal").first();
   await expect(firstRule).toHaveAttribute("data-shown", "false");
-  await page.getByTestId("live-balance").scrollIntoViewIfNeeded();
+  const paidCard = page.getByTestId("motion-paid");
+  await expect(paidCard).toHaveAttribute("data-playing", "false");
+  await page.getByTestId("outcomes").scrollIntoViewIfNeeded();
   await expect(firstRule).toHaveAttribute("data-shown", "true");
+
+  // each rule card acts out its own outcome, on a clock of its own length, so they never move in step
+  await expect(paidCard).toHaveAttribute("data-playing", "true");
+  const lengths = await page.evaluate(() =>
+    ["paid", "waits", "blocked"].map((s) => document.querySelector(`[data-testid=motion-${s}] .mini-chip`)?.getAnimations()[0]?.effect?.getTiming().duration),
+  );
+  expect(lengths).toEqual([3200, 5200, 3800]);
+
   await page.getByRole("contentinfo").scrollIntoViewIfNeeded();
   await expect(gate).toHaveAttribute("data-playing", "false");
+  await expect(paidCard).toHaveAttribute("data-playing", "false");
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(gate).toHaveAttribute("data-playing", "true");
 });
 
-test("with reduced motion the hero is one still frame and everything is shown at once", async ({ page }) => {
+test("with reduced motion every animation is one still frame and everything is shown at once", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   const gate = page.getByTestId("gate-flow");
   await expect(gate).toBeVisible();
   expect(await gate.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+  for (const card of await page.locator(".mini").all()) expect(await card.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
   // the still frame is the request waiting for the wallet
   expect(await gate.evaluate((el) => [...el.querySelectorAll(".gate-caption")].map((c) => getComputedStyle(c).opacity))).toEqual(["0", "1", "0"]);
   await expect(page.locator(".reveal").first()).toHaveAttribute("data-shown", "true");
