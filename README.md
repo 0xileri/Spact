@@ -1,10 +1,10 @@
-# Spact
+# SpactVault
 
 *Autonomous spending. Human rules.*
 
-![Spact: a spending firewall for AI agents on NEAR. Paid at once, waits for your wallet, or blocked.](apps/web/public/og-image.png)
+![SpactVault: a spending firewall for AI agents on NEAR. Paid at once, waits for your wallet, or blocked.](apps/web/public/og-image.png)
 
-Spact is a payment-policy firewall for AI agents on NEAR. An agent asks a NEAR vault contract to pay someone. The contract enforces the owner's limits on-chain. Anything above the auto limit waits until the owner approves that exact payment from their wallet.
+SpactVault (Spact for short) is a payment-policy firewall for AI agents on NEAR. An agent asks a NEAR vault contract to pay someone. The contract enforces the owner's limits on-chain. Anything above the auto limit waits until the owner approves that exact payment from their wallet.
 
 > **Unaudited hackathon prototype.** Local sandbox only so far. Do not use with real funds.
 

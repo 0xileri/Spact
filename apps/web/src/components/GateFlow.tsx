@@ -63,7 +63,7 @@ export function GateFlow({ example, source }: { example: GateExample; source: st
   return (
     <figure
       ref={ref}
-      className="gate rounded-3xl border border-line bg-surface p-4 shadow-xl shadow-stone-900/5 sm:p-6"
+      className="gate rounded-3xl border border-line bg-surface p-4 shadow-xl shadow-zinc-900/5 sm:p-6"
       data-playing={playing}
       data-testid="gate-flow"
     >
@@ -81,14 +81,14 @@ export function GateFlow({ example, source }: { example: GateExample; source: st
         <text fontSize={14} x={202} y={47} className="fill-paper font-semibold">
           Your agent
         </text>
-        <text fontSize={11} x={202} y={65} className="fill-stone-400 font-mono">
+        <text fontSize={11} x={202} y={65} className="fill-zinc-400 font-mono">
           asks to pay
         </text>
 
         {/* the rules the gate applies; on a phone the caption says them instead */}
         {compact ? null : (
           <g>
-            <text fontSize={12} x={24} y={214} className="fill-stone-500 font-medium">
+            <text fontSize={12} x={24} y={214} className="fill-zinc-500 font-medium">
               Vault rules, on chain
             </text>
             <RuleRow y={240} signal="paid" text={`≤ ${example.auto} paid`} />
@@ -101,7 +101,7 @@ export function GateFlow({ example, source }: { example: GateExample; source: st
         <line x1={310} y1={250} x2={330} y2={250} className="gate-link stroke-waits" strokeWidth={2} strokeDasharray="3 3" />
         <g className="gate-wallet">
           <rect x={330} y={196} width={136} height={108} rx={14} className="fill-paper stroke-line" strokeWidth={1.5} />
-          <text fontSize={11} x={344} y={218} className="fill-stone-500">
+          <text fontSize={11} x={344} y={218} className="fill-zinc-500">
             Your wallet
           </text>
           <text fontSize={12} x={344} y={238} className="fill-ink font-semibold">
@@ -138,7 +138,7 @@ export function GateFlow({ example, source }: { example: GateExample; source: st
 
         {/* the payee */}
         <rect x={150} y={400} width={180} height={60} rx={16} className="fill-paper stroke-line" strokeWidth={1.5} />
-        <text fontSize={11} x={240} y={426} textAnchor="middle" className="fill-stone-500">
+        <text fontSize={11} x={240} y={426} textAnchor="middle" className="fill-zinc-500">
           Payee on your list
         </text>
         <text fontSize={12} x={240} y={444} textAnchor="middle" className="fill-ink font-semibold">
@@ -163,7 +163,7 @@ export function GateFlow({ example, source }: { example: GateExample; source: st
             </span>
           ))}
         </span>
-        <span className="mt-2 block text-xs text-stone-500" data-testid="gate-source">
+        <span className="mt-2 block text-xs text-zinc-500" data-testid="gate-source">
           {source}
         </span>
       </figcaption>

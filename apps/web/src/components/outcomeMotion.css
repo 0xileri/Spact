@@ -9,15 +9,17 @@
 .mini {
   --mini-io: cubic-bezier(0.65, 0, 0.35, 1);
   --mini-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --mini-idle: var(--color-stone-300, #d6d3d1);
+  --mini-idle: var(--color-zinc-300, #d4d4d8);
 }
 
 .mini-track {
   stroke-dasharray: 4 8;
 }
-.mini-post,
-.mini-pill {
+.mini-post {
   fill: var(--color-ink);
+}
+.mini-pill {
+  fill: var(--color-brand);
 }
 .mini-dot {
   fill: var(--mini-idle);
@@ -122,11 +124,11 @@
   76%, 100% { opacity: 0.35; }
 }
 @keyframes mini-waits-pill {
-  0%, 46% { fill: var(--color-ink); transform: scale(1); }
-  48% { fill: var(--color-ink); transform: scale(0.9); }
+  0%, 46% { fill: var(--color-brand); transform: scale(1); }
+  48% { fill: var(--color-brand); transform: scale(0.9); }
   50% { fill: var(--color-paid); transform: scale(1); }
   70% { fill: var(--color-paid); }
-  74%, 100% { fill: var(--color-ink); transform: scale(1); }
+  74%, 100% { fill: var(--color-brand); transform: scale(1); }
 }
 @keyframes mini-waits-label {
   0%, 49% { opacity: 1; }

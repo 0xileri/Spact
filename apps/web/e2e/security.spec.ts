@@ -47,6 +47,6 @@ test("a missing or broken report is reported as such", async ({ page }) => {
   await page.unrouteAll();
   await serveReport(page, JSON.stringify({ ...REPORT, schema: "something-else" }));
   await page.reload();
-  await expect(page.getByText("This is not a valid Spact security report")).toBeVisible();
+  await expect(page.getByText("This is not a valid SpactVault security report")).toBeVisible();
   await expect(page.getByTestId("security-lab")).toHaveCount(0);
 });

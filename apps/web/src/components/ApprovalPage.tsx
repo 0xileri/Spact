@@ -62,7 +62,7 @@ export function ApprovalPage({
       </Notice>
     );
   }
-  if (!snapshot) return <p className="text-sm text-stone-500">Reading the request from the vault…</p>;
+  if (!snapshot) return <p className="text-sm text-zinc-500">Reading the request from the vault…</p>;
 
   const a = assess({ config, snapshot, signerAvailable: signer !== null, signerAccountId: wallet.accountId, executeNow });
   const { request, token, budget, policy } = snapshot;
@@ -97,18 +97,18 @@ export function ApprovalPage({
       {request ? (
         <Card>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h1 className="text-sm font-medium text-stone-500">Payment request</h1>
+            <h1 className="text-sm font-medium text-zinc-500">Payment request</h1>
             <StatusBadge status={request.status} />
           </div>
           <p className="mt-3 font-display text-3xl font-semibold tracking-tight" data-testid="amount">
             {formatAmount(request.amount, token)}
           </p>
-          <p className="mt-1 text-sm text-stone-600">to</p>
+          <p className="mt-1 text-sm text-zinc-600">to</p>
           <p className="mt-1 text-xl font-semibold" data-testid="recipient">
             <Mono>{request.recipient}</Mono>
           </p>
 
-          <dl className="mt-4 divide-y divide-stone-100 border-t border-stone-100">
+          <dl className="mt-4 divide-y divide-zinc-100 border-t border-zinc-100">
             <Field label="Amount in base units">
               <Mono>{request.amount}</Mono>
             </Field>
@@ -121,16 +121,16 @@ export function ApprovalPage({
             <Field label="Agent's note" testId="reason">
               {request.reason ? (
                 <>
-                  <q className="text-stone-800">{request.reason}</q>
-                  <span className="mt-1 block text-xs text-stone-500">Written by the agent. Not verified.</span>
+                  <q className="text-zinc-800">{request.reason}</q>
+                  <span className="mt-1 block text-xs text-zinc-500">Written by the agent. Not verified.</span>
                 </>
               ) : (
-                <span className="text-stone-400">none</span>
+                <span className="text-zinc-400">none</span>
               )}
             </Field>
             <Field label="Expires">
               {formatUtc(request.expires_at_ns)}
-              {a.expiresInSec !== null ? <span className="text-stone-500"> ({formatRelative(a.expiresInSec)})</span> : null}
+              {a.expiresInSec !== null ? <span className="text-zinc-500"> ({formatRelative(a.expiresInSec)})</span> : null}
             </Field>
             <Field label="Request ID">
               <Mono>{request.request_id}</Mono>
@@ -141,18 +141,18 @@ export function ApprovalPage({
 
       {request && tokenPolicy ? (
         <Card>
-          <h2 className="text-sm font-semibold text-stone-700">Vault policy for this token</h2>
+          <h2 className="text-sm font-semibold text-zinc-700">Vault policy for this token</h2>
           <dl className="mt-2 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
             <div>
-              <dt className="text-stone-500">Paid without asking</dt>
+              <dt className="text-zinc-500">Paid without asking</dt>
               <dd className="font-medium">up to {formatAmount(tokenPolicy.auto_limit, token)}</dd>
             </div>
             <div>
-              <dt className="text-stone-500">Largest single payment</dt>
+              <dt className="text-zinc-500">Largest single payment</dt>
               <dd className="font-medium">{formatAmount(tokenPolicy.hard_tx_limit, token)}</dd>
             </div>
             <div>
-              <dt className="text-stone-500">Left today (UTC)</dt>
+              <dt className="text-zinc-500">Left today (UTC)</dt>
               <dd className="font-medium" data-testid="budget-left">
                 {budget ? `${formatAmount(budget.available, token)} of ${formatAmount(budget.daily_limit, token)}` : "unknown"}
               </dd>
@@ -196,7 +196,7 @@ export function ApprovalPage({
 
       {request && (request.status === "AWAITING_APPROVAL" || request.status === "APPROVED") ? (
         <Card>
-          <h2 className="text-sm font-semibold text-stone-700">Your decision</h2>
+          <h2 className="text-sm font-semibold text-zinc-700">Your decision</h2>
           {request.status === "AWAITING_APPROVAL" ? (
             <label className="mt-3 flex items-start gap-3 text-sm">
               <input
@@ -209,7 +209,7 @@ export function ApprovalPage({
               />
               <span>
                 Pay immediately after approving
-                <span className="block text-stone-500">Otherwise the agent can execute it later, until it expires.</span>
+                <span className="block text-zinc-500">Otherwise the agent can execute it later, until it expires.</span>
               </span>
             </label>
           ) : null}
@@ -228,7 +228,7 @@ export function ApprovalPage({
               Reject
             </Button>
           </div>
-          <p className="mt-3 text-xs text-stone-500">
+          <p className="mt-3 text-xs text-zinc-500">
             Approving and rejecting attach 1 yoctoNEAR, so your wallet must confirm with a full-access key. A limited key held by an app cannot do
             this.
           </p>

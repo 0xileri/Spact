@@ -80,6 +80,12 @@ GitHub Actions `ci` run 1 (commit `8b91f83`) passed both jobs. The contracts job
 
 Measured: an auto payment (request + ft_transfer + callback) burnt about 7 Tgas in sandbox.
 
+SpactVault brand (2026-10-30), DECISIONS ADR-027:
+- **Name:** the product is SpactVault. The site, share card, 404 page, Telegram link message and MCP tool titles say so; code and package names stay `spact`.
+- **Mark:** a Space Grotesk Bold S woven through a V, on a white tile, in violet ink `#140f2b` and violet `#6a4cff`. The favicon, PNG icons and share card are regenerated from `apps/web/src/brandMark.ts`.
+- **Palette:** a cool near-white page, white cards and zinc grays. Violet marks primary links, focus rings and the Approve button in the animations; the paid, waits and blocked colors are unchanged.
+- **Not done:** the `spactvault` domain is not bought yet.
+
 Redesign skill pass (2026-10-25/26), DECISIONS ADR-026:
 - **What changed:** one typeface (Space Grotesk) plus Geist Mono, Phosphor icons, a spacing scale, one motion curve and a grain overlay, all in the ADR-024 colors. A floating pill nav, loading skeletons, a skip link, a Privacy and terms page and a branded 404.
 - **Second pass:** the owner found the first pass too busy. The landing page is now three sections (hero, the three rules, the live vault), and the hero is an animated graphic of the vault's gate. In it, one request is paid, one waits for the wallet and is approved, and one is blocked. Its amounts are picked from the vault's own limits. Each rule card plays a short loop of its own outcome.

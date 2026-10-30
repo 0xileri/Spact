@@ -9,7 +9,7 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
 type Tone = "neutral" | "good" | "warn" | "bad" | "info";
 
 const TONES: Record<Tone, string> = {
-  neutral: "bg-stone-100 text-stone-700 ring-stone-200",
+  neutral: "bg-zinc-100 text-zinc-700 ring-zinc-200",
   good: "bg-emerald-50 text-emerald-800 ring-emerald-200",
   warn: "bg-amber-50 text-amber-900 ring-amber-200",
   bad: "bg-rose-50 text-rose-800 ring-rose-200",
@@ -66,8 +66,8 @@ export function statusLabel(status: Status): string {
 export function Field({ label, children, testId }: { label: string; children: ReactNode; testId?: string }) {
   return (
     <div className="grid gap-1 py-3 sm:grid-cols-[10rem_1fr] sm:gap-4">
-      <dt className="text-sm text-stone-500">{label}</dt>
-      <dd className="min-w-0 text-sm text-stone-900" data-testid={testId}>
+      <dt className="text-sm text-zinc-500">{label}</dt>
+      <dd className="min-w-0 text-sm text-zinc-900" data-testid={testId}>
         {children}
       </dd>
     </div>
@@ -96,7 +96,7 @@ export function Button({
   const styles = {
     primary: "bg-emerald-700 text-white hover:bg-emerald-800 focus-visible:outline-emerald-700",
     danger: "bg-white text-rose-700 ring-1 ring-rose-300 hover:bg-rose-50 focus-visible:outline-rose-700",
-    secondary: "bg-surface text-stone-800 ring-1 ring-line hover:ring-stone-300 focus-visible:outline-stone-700",
+    secondary: "bg-surface text-zinc-800 ring-1 ring-line hover:ring-zinc-300 focus-visible:outline-zinc-700",
   }[variant];
   return (
     <button

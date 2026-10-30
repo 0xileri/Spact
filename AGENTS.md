@@ -33,7 +33,7 @@ This file is an execution contract for coding assistants. Treat security require
 
 ## 1. Product identity and one-sentence promise
 
-**Name:** Spact  
+**Name:** SpactVault (Spact for short; code, package and account names stay `spact`)  
 **Category:** open-source payment-policy firewall for AI agents  
 **Tagline:** *Autonomous spending. Human rules.*  
 **Primary hackathon track:** AI Security & Defense  
