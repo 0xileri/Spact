@@ -36,6 +36,7 @@ for f in og-image.png favicon.svg; do
 done
 code="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE/no-such-file")"
 [ "$code" = 404 ] && pass "unknown path is 404" || fail "unknown path returned $code"
+curl -sS "$BASE/no-such-file" | grep -q "This page does not exist" && pass "unknown path shows the branded 404 page" || fail "404 page is not the branded one"
 code="$(curl -sS -o /dev/null -w '%{http_code}' --path-as-is "$BASE/../../etc/passwd")"
 [ "$code" = 404 ] || [ "$code" = 400 ] && pass "path traversal refused ($code)" || fail "path traversal returned $code"
 

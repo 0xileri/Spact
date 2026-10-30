@@ -147,6 +147,27 @@ Hashed assets are cached for a year, and the page itself is revalidated on every
 
 **Cost.** Railway's trial is a one-time $5 for 30 days. After that it is the Free plan's $1 a month or Hobby at $5 a month, inside AGENTS.md's $100 ceiling.
 
+## ADR-026: Brand design values from the redesign skill, kept to the Spact palette (2026-10-25)
+
+The owner pointed at [elayadesign/ai-design-skills](https://github.com/elayadesign/ai-design-skills) and asked for the best fit, in the Spact colors. `redesign-existing-projects` fits: it audits a site that already works and upgrades it in place, instead of starting a new design. Its audit, applied with the ADR-024 palette unchanged:
+
+- **Type.** One typeface, Space Grotesk, for headings and body; Inter is gone. Numbers, hashes and code use Geist Mono. Sizes come from Tailwind's type scale only, and spacing snaps to 2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 80 and 96 px.
+- **Color.** Unchanged: ink `#0b0f14`, paper `#f7f6f2`, surface `#fffefb`, line `#e7e4dc`, and the three signals (paid `#10b981`, waits `#f59e0b`, blocked `#f43f5e`). The only additions are a light ink-to-stone gradient on the hero headline and a 5% grain overlay.
+- **Motion.** One curve, `cubic-bezier(0.32, 0.72, 0, 1)`, for interface transitions. Sections fade up once as they are reached, via IntersectionObserver, never a scroll listener. With `prefers-reduced-motion`, everything is shown at once.
+- **Icons.** Phosphor (`@phosphor-icons/react` 2.1.10), tree-shaken.
+- **Missing pages.** A skip link, a Privacy and terms page (`?page=legal`) that says what the site does with data, and a branded 404 that Caddy serves for missing paths.
+
+What it left out: stock photos, testimonials and logos we do not have, invented numbers, and anything that would add a third-party request. Every number on the landing page is still read from the vault or the Security Lab report, and the hero's proof line says "in CI" only when the report came from CI.
+
+**Second pass: fewer sections, one moving graphic.** The owner found the first pass too busy, with too much on the page, and asked for one straightforward page with motion graphics. The skill's own scope lets the owner's explicit request win over its rules (the mandatory tagline and FAQ). The landing page is now three sections: the hero, the three rules, and the live vault. The comparison table, timeline, tagline, Security Lab band, FAQ, get-started terminal and closing call to action are gone. The Security Lab stays one link away, with its count in the hero.
+
+The hero's visual is `GateFlow`, an SVG animation built the way `design-to-motion` (same repo) describes website sections:
+- **The story.** It runs a 10 second loop of three requests. One is paid at once. One stops at the gate, the owner's wallet approves it, and it is paid. One meets a closed gate and is sent back.
+- **The numbers.** The amounts are picked from the vault's own limits (`gateExample` in `apps/web/src/landing.ts`). The figure says when they are only an example, which is when there is no vault or the policy has no three outcomes.
+- **How it runs.** The animation is CSS keyframes only, with no animation library. It pauses while off screen, through IntersectionObserver. With reduced motion it is a single still frame: the request waiting for the wallet.
+- **On a phone.** The graphic drops its legend and crops its viewBox so its labels stay readable, and the caption under it states the rule instead.
+- **The rule cards.** Each card acts out its own outcome on a short track (`OutcomeMotion`): paid passes straight through, waits is tapped Approve, blocked meets a closed gate. The loops run 3.2, 5.2 and 3.8 seconds, so the cards never move in step. They follow the same rules: CSS only, paused off screen, a still frame with reduced motion.
+
 ## Open questions (from AGENTS.md section 17)
 
 - [x] Official `HACKATHON.md`: added at the repo root (owner copy, 2026-10-23).

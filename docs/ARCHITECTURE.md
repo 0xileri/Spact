@@ -86,7 +86,7 @@ React 19 + Vite 8 + Tailwind 4. No backend: it reads the vault directly over NEA
 ```
 
 - **Signers.** testnet/mainnet: `@hot-labs/near-connect` (wallets run in sandboxed iframes). sandbox: `dev/dev-signer.ts`, a localhost process holding the sandbox owner key that signs only approve/reject/execute on the demo vault.
-- **Routes.** `/` is the landing page (ADR-024); `?page=overview` is the dashboard; `?page=security` is the Security Lab; `?request=<id>` is the approval page (the Telegram and MCP deep link target). A `vault=` parameter that differs from the configured vault is refused.
+- **Routes.** `/` is the landing page (ADR-024); `?page=overview` is the dashboard; `?page=security` is the Security Lab; `?request=<id>` is the approval page (the Telegram and MCP deep link target); `?page=legal` is Privacy and terms. Missing paths get a branded `404.html` from Caddy (ADR-026). A `vault=` parameter that differs from the configured vault is refused.
 - **Dashboard.** Overview cards (waiting count, paused, policy version, stored requests); one card per allowlisted token with the vault's balance, today's budget (left, paid, reserved, reset time) and the limits; the open requests; agent activity (newest first, 50 per page, cards on phones); who can do what. It re-reads the chain every 15 s and signs nothing (ADR-021).
 - **Local demo.** `scripts/dev-sandbox.sh` runs `demo-sandbox` (a Rust binary in `contracts/integration-tests` that deploys a funded vault on a local node), the dev signer and the dev server.
 - **Browser tests.** `apps/web/e2e`, Playwright + Chromium against that same local setup, plus the production build served under `/Spact/` with no vault, the way GitHub Pages serves it.

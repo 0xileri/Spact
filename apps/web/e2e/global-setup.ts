@@ -28,7 +28,10 @@ function servePages(dir: string): Promise<Server> {
     const path = new URL(req.url ?? "/", "http://localhost").pathname;
     const file = path.startsWith(PAGES_BASE) ? resolve(dir, path.slice(PAGES_BASE.length) || "index.html") : null;
     if (!file || !file.startsWith(dir + sep) || !existsSync(file) || !statSync(file).isFile()) {
-      res.writeHead(404).end();
+      // like GitHub Pages: the site's own 404.html, with a 404 status
+      const notFound = join(dir, "404.html");
+      if (path.startsWith(PAGES_BASE) && existsSync(notFound)) res.writeHead(404, { "content-type": "text/html" }).end(readFileSync(notFound));
+      else res.writeHead(404).end();
       return;
     }
     res.writeHead(200, { "content-type": TYPES[extname(file)] ?? "application/octet-stream" }).end(readFileSync(file));

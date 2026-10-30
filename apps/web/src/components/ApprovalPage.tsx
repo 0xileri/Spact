@@ -93,7 +93,7 @@ export function ApprovalPage({
   const approveLabel = executeNow ? "Approve and pay" : "Approve only";
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {request ? (
         <Card>
           <div className="flex flex-wrap items-center justify-between gap-2">

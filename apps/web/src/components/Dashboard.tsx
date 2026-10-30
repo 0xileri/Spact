@@ -153,22 +153,22 @@ function ActivityList({ requests, metadataFor, nowNs }: ActivityProps) {
 
 function ActivityTable({ requests, metadataFor, nowNs }: ActivityProps) {
   return (
-    <div className="-mx-5 hidden overflow-x-auto sm:block">
+    <div className="-mx-6 hidden overflow-x-auto sm:block">
       <table className="w-full min-w-[40rem] text-left text-sm" data-testid="activity">
         <thead className="text-xs text-stone-500">
           <tr className="border-b border-stone-100">
-            <th className="px-5 py-2 font-medium">Requested (UTC)</th>
+            <th className="px-6 py-2 font-medium">Requested (UTC)</th>
             <th className="px-2 py-2 font-medium">Request</th>
             <th className="px-2 py-2 font-medium">Amount</th>
             <th className="px-2 py-2 font-medium">To</th>
             <th className="px-2 py-2 font-medium">Status</th>
-            <th className="px-5 py-2 font-medium">Reason</th>
+            <th className="px-6 py-2 font-medium">Reason</th>
           </tr>
         </thead>
         <tbody>
           {requests.map((r) => (
             <tr key={r.request_id} className="border-b border-stone-50 align-top" data-request={r.request_id}>
-              <td className="whitespace-nowrap px-5 py-2 text-stone-600">{formatUtc(r.created_at_ns).replace(" UTC", "")}</td>
+              <td className="whitespace-nowrap px-6 py-2 text-stone-600">{formatUtc(r.created_at_ns).replace(" UTC", "")}</td>
               <td className="px-2 py-2">
                 <a href={requestLink(r.request_id)} className="font-mono text-stone-900 underline decoration-stone-300 underline-offset-2 hover:decoration-stone-600">
                   {r.request_id}
@@ -179,7 +179,7 @@ function ActivityTable({ requests, metadataFor, nowNs }: ActivityProps) {
               <td className="px-2 py-2">
                 <RowStatus request={r} nowNs={nowNs} />
               </td>
-              <td className="px-5 py-2">
+              <td className="px-6 py-2">
                 <abbr title={explainReason(r.reason_code)} className="font-mono text-xs text-stone-600 no-underline">
                   {r.reason_code}
                 </abbr>
