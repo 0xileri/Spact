@@ -1,6 +1,6 @@
-# Spact Telegram notifier
+# SpactVault Telegram notifier
 
-Watches one Spact vault and messages the owner on Telegram when a payment waits for approval. It messages again when the payment is paid, rejected or expires.
+Watches one SpactVault vault contract and messages the owner on Telegram when a payment waits for approval. It messages again when the payment is paid, rejected or expires.
 
 The bot only notifies. Its messages have no approve or reject buttons, and it holds no NEAR keys. To approve, the owner opens the linked approval page, checks the terms against the chain, and signs with their wallet (AGENTS.md section 7).
 

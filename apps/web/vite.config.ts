@@ -15,7 +15,7 @@ function shareTags(siteUrl: string | undefined): Plugin {
 }
 
 export default defineConfig({
-  // relative asset paths, so one build works at / and under a subpath such as GitHub Pages /Spact/
+  // relative asset paths, so one build works at / and under a subpath such as GitHub Pages /SpactVault/
   base: "./",
   plugins: [react(), tailwindcss(), shareTags(process.env.VITE_SITE_URL)],
   // Resolve workspace packages to their TypeScript sources, so no prebuild step is needed.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Spact Telegram notifier. Polls one vault over NEAR RPC and messages one Telegram chat when a
+ * SpactVault Telegram notifier. Polls one vault over NEAR RPC and messages one Telegram chat when a
  * payment waits for the owner, then again when it is paid, rejected or expires. It holds no NEAR
  * keys and the bot has no buttons that act: approval only happens in the owner's wallet.
  *

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Spact owner approval page",
+  "description": "SpactVault site: landing page, owner dashboard, approval page and Security Lab",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

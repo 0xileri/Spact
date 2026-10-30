@@ -37,7 +37,7 @@ Facts taken from the crate sources, all exercised by passing tests:
 - `env::promise_result` is deprecated in 5.29 in favor of `promise_result_checked(idx, max_len)`. The vault uses the checked form.
 - `#[private]` is enforced in the generated wasm entry point, not inside the Rust method, so unit tests cannot cover it. Sandbox test `t16_callback_cannot_be_called_from_outside` does.
 - A transaction signed with a function-call access key that attaches a deposit is rejected by the protocol with `InvalidAccessKeyError(DepositWithFunctionCall)`. Observed in sandbox test `s2_approval_needs_the_owner_wallet_and_executes_once`. This is what makes the 1 yocto requirement on owner methods meaningful.
-- A NEAR function-call key's `allowance` limits gas fees, not token spending (AGENTS.md section 3). Spact never uses it as a budget.
+- A NEAR function-call key's `allowance` limits gas fees, not token spending (AGENTS.md section 3). SpactVault never uses it as a budget.
 - Errors for a function-call key, all observed in sandbox test `t19_restricted_agent_key_can_only_request_and_execute`: another contract gives `ReceiverMismatch`, a method not in the list gives `MethodNameMismatch`, a deposit gives `DepositWithFunctionCall`, and a transfer, `AddKey` or `DeleteAccount` gives `RequiresFullAccess`. An exhausted allowance gives `NotEnoughAllowance` (`t20_agent_key_allowance_caps_gas_spending`). near-workspaces 0.23.0 builds the key with `AccessKey::function_call_access(receiver, methods, allowance)`.
 
 ### Sandbox node in containers
@@ -170,4 +170,4 @@ expires_at_ns=1762000000000000000 policy_version=1
 
 - Submissions are accepted only from 2026-11-01T00:00:00Z to 2026-11-14T23:59:00Z, through `POST https://nearhackathon.com/api/applications` or the form. Outside that window the API returns 403.
 - One attempt per team, no edits. The agent prints the full payload and sends only after the human confirms. The payload is never committed (it contains personal data).
-- Track ids that fit Spact: `security` (primary, hints: agent security, function-call keys, TEE attestation) and `agents`. The human decides.
+- Track ids that fit SpactVault: `security` (primary, hints: agent security, function-call keys, TEE attestation) and `agents`. The human decides.

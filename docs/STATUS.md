@@ -85,7 +85,9 @@ SpactVault brand (2026-10-30), DECISIONS ADR-027:
 - **Mark:** a Space Grotesk Bold S woven through a V, on a white tile, in violet ink `#140f2b` and violet `#6a4cff`. The favicon, PNG icons and share card are regenerated from `apps/web/src/brandMark.ts`.
 - **Palette:** a cool near-white page, white cards and zinc grays. Violet marks primary links, focus rings and the Approve button in the animations; the paid, waits and blocked colors are unchanged.
 - **Repository renamed** to `0xileri/SpactVault` by the owner. GitHub Pages moved to https://0xileri.github.io/SpactVault/. The `Dockerfile` report and repo defaults, the README and the MCP setup example now point there.
-- **Not done:** the `spactvault` domain is not bought yet.
+- **Domain:** https://spactvault.xyz is live on Railway. Railway reports the DNS record propagated, the domain verified and its certificate valid (2026-10-30).
+- **Rest of the repository:** current docs, package descriptions and file headers say SpactVault. History in DECISIONS and STATUS keeps the old name. Code identifiers, the `spact-vault` contract crate, `SPACT_*` variables, test names and the deployed token metadata are unchanged.
+- **Brand kit:** `brand/` has the avatar, logo, icon and GitHub social preview, generated with the site's icons by `apps/web/dev/render-brand.ts` (see `brand/README.md`).
 
 Redesign skill pass (2026-10-25/26), DECISIONS ADR-026:
 - **What changed:** one typeface (Space Grotesk) plus Geist Mono, Phosphor icons, a spacing scale, one motion curve and a grain overlay, all in the ADR-024 colors. A floating pill nav, loading skeletons, a skip link, a Privacy and terms page and a branded 404.

@@ -12,6 +12,8 @@ import { BRAND, tileSvg } from "../src/brandMark.ts";
 
 const WEB = resolve(import.meta.dirname, "..");
 const PUBLIC = join(WEB, "public");
+/** Files for use outside the site: avatars, social previews, the logo (brand/README.md). */
+const KIT = resolve(WEB, "../../brand");
 const PAPER = "#f7f7fb";
 const PAID = "#10b981";
 const WAITS = "#f59e0b";
@@ -23,10 +25,10 @@ const fontFace = `@font-face { font-family: "Space Grotesk"; font-weight: 300 70
 const pill = (color: string, label: string) =>
   `<span class="pill"><span class="dot" style="background:${color}"></span>${label}</span>`;
 
-const card = `<!doctype html><html><head><style>
+const card = (width = 1200, height = 630) => `<!doctype html><html><head><style>
   ${fontFace}
   * { margin: 0; box-sizing: border-box; }
-  body { width: 1200px; height: 630px; background: ${PAPER}; color: ${BRAND.ink}; font-family: "Space Grotesk", sans-serif; position: relative; overflow: hidden; }
+  body { width: ${width}px; height: ${height}px; background: ${PAPER}; color: ${BRAND.ink}; font-family: "Space Grotesk", sans-serif; position: relative; overflow: hidden; }
   .left { position: absolute; left: 80px; top: 64px; width: 700px; }
   .brand { display: flex; align-items: center; gap: 18px; }
   .word { font-size: 44px; font-weight: 700; letter-spacing: -0.03em; }
@@ -53,23 +55,35 @@ const card = `<!doctype html><html><head><style>
 const icon = (size: number, square: boolean) =>
   `<!doctype html><html><body style="margin:0;background:transparent">${tileSvg(size, square)}</body></html>`;
 
+/** The lockup: mark tile and wordmark on white, for documents and slides. */
+const lockup = `<!doctype html><html><head><style>
+  ${fontFace}
+  body { margin: 0; width: 2400px; height: 640px; background: ${BRAND.white}; display: flex; align-items: center; justify-content: center; gap: 72px; font-family: "Space Grotesk", sans-serif; }
+  .word { font-size: 260px; font-weight: 700; letter-spacing: -0.03em; color: ${BRAND.ink}; }
+  .word b { color: ${BRAND.violet}; font-weight: 700; }
+</style></head><body>${tileSvg(400)}<span class="word">Spact<b>Vault</b></span></body></html>`;
+
 writeFileSync(join(PUBLIC, "favicon.svg"), tileSvg() + "\n");
-console.log("wrote public/favicon.svg");
+writeFileSync(join(KIT, "spactvault-icon.svg"), tileSvg() + "\n");
+console.log("wrote public/favicon.svg and brand/spactvault-icon.svg");
 
 const browser = await chromium.launch();
 try {
   const shots: [string, string, number, number, boolean][] = [
-    ["og-image.png", card, 1200, 630, false],
-    ["favicon-32.png", icon(32, false), 32, 32, true],
-    ["apple-touch-icon.png", icon(180, true), 180, 180, false],
+    [join(PUBLIC, "og-image.png"), card(), 1200, 630, false],
+    [join(PUBLIC, "favicon-32.png"), icon(32, false), 32, 32, true],
+    [join(PUBLIC, "apple-touch-icon.png"), icon(180, true), 180, 180, false],
+    [join(KIT, "spactvault-avatar-1024.png"), icon(1024, true), 1024, 1024, false],
+    [join(KIT, "spactvault-logo.png"), lockup, 2400, 640, false],
+    [join(KIT, "github-social-preview.png"), card(1280, 640), 1280, 640, false],
   ];
-  for (const [file, html, width, height, transparent] of shots) {
+  for (const [path, html, width, height, transparent] of shots) {
     const page = await browser.newPage({ viewport: { width, height } });
     await page.setContent(html);
     await page.evaluate(() => document.fonts.ready);
-    await page.screenshot({ path: join(PUBLIC, file), omitBackground: transparent });
+    await page.screenshot({ path, omitBackground: transparent });
     await page.close();
-    console.log(`wrote public/${file}`);
+    console.log(`wrote ${path.replace(resolve(WEB, "../.."), "").slice(1)}`);
   }
 } finally {
   await browser.close();
