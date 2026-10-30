@@ -38,7 +38,7 @@ test("the landing page states the vault's own limits and shows what is on chain"
   await page.getByRole("link", { name: "Open the dashboard" }).first().click();
   await expect(page).toHaveURL(/\?page=overview$/);
   await expect(page.getByTestId("dashboard")).toBeVisible();
-  await page.getByRole("link", { name: "Spact home" }).click();
+  await page.getByRole("link", { name: "SpactVault home" }).click();
   await expect(page.getByTestId("landing")).toBeVisible();
 });
 

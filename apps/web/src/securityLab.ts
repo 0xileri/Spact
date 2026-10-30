@@ -50,6 +50,6 @@ export async function loadSecurityReport(url: string): Promise<LoadResult> {
     return { kind: "invalid", reason: "the file is not JSON" };
   }
   const parsed = securityReportSchema.safeParse(json);
-  if (!parsed.success) return { kind: "invalid", reason: "the file is not a Spact security report (v1)" };
+  if (!parsed.success) return { kind: "invalid", reason: "the file is not a SpactVault security report (v1)" };
   return { kind: "ok", view: viewOf(parsed.data) };
 }

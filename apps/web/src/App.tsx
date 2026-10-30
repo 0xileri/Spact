@@ -2,7 +2,7 @@ import { ArrowUpRight, GithubLogo } from "@phosphor-icons/react";
 import { useMemo, type ReactNode } from "react";
 
 import { ApprovalPage } from "./components/ApprovalPage.js";
-import { GateMark, Logo } from "./components/Brand.js";
+import { Logo, MarkTile } from "./components/Brand.js";
 import { Dashboard } from "./components/Dashboard.js";
 import { Landing } from "./components/Landing.js";
 import { Legal } from "./components/Legal.js";
@@ -38,7 +38,7 @@ function FooterLink({ href, children, external = false }: { href: string; childr
   return (
     <a
       href={href}
-      className="inline-flex items-center gap-1 text-stone-600 transition-colors duration-300 ease-fluid hover:text-ink"
+      className="inline-flex items-center gap-1 text-zinc-600 transition-colors duration-300 ease-fluid hover:text-ink"
       {...(external ? { target: "_blank", rel: "noreferrer noopener" } : {})}
     >
       {children}
@@ -53,7 +53,7 @@ function SiteFooter({ config }: { config: SiteConfig }) {
       <div className="mx-auto flex max-w-6xl flex-wrap items-start justify-between gap-8 px-6 py-12 text-sm">
         <div className="max-w-xs">
           <Logo />
-          <p className="mt-3 text-stone-600">Autonomous spending. Human rules. A spending firewall for AI agents on NEAR.</p>
+          <p className="mt-3 text-zinc-600">Autonomous spending. Human rules. A spending firewall for AI agents on NEAR.</p>
         </div>
         <nav aria-label="Footer" className="flex flex-wrap gap-x-8 gap-y-3">
           <FooterLink href="?page=overview">Dashboard</FooterLink>
@@ -66,8 +66,8 @@ function SiteFooter({ config }: { config: SiteConfig }) {
           <FooterLink href="?page=legal">Privacy and terms</FooterLink>
         </nav>
       </div>
-      <p className="mx-auto max-w-6xl px-6 pb-8 text-xs leading-relaxed text-stone-500">
-        Spact is an unaudited hackathon prototype. Use test tokens only. This page never holds keys: your wallet signs, and the vault contract enforces the
+      <p className="mx-auto max-w-6xl px-6 pb-8 text-xs leading-relaxed text-zinc-500">
+        SpactVault is an unaudited hackathon prototype. Use test tokens only. This page never holds keys: your wallet signs, and the vault contract enforces the
         rules.
       </p>
     </footer>
@@ -89,11 +89,11 @@ export function App({ config }: { config: SiteConfig }) {
   const foreignVault = config.vaultId !== null && linkVault !== null && linkVault !== config.vaultId;
   const landing = onHome && !foreignVault;
   const navClass = (active: boolean) =>
-    `rounded-full px-3 py-1 transition-colors duration-300 ease-fluid ${active ? "bg-stone-100 font-medium text-ink" : "text-stone-600 hover:text-ink"}`;
+    `rounded-full px-3 py-1 transition-colors duration-300 ease-fluid ${active ? "bg-zinc-100 font-medium text-ink" : "text-zinc-600 hover:text-ink"}`;
 
   const walletControls =
     config.vaultId === null ? null : signer === null ? (
-      <span className="text-xs text-stone-500">No signer configured</span>
+      <span className="text-xs text-zinc-500">No signer configured</span>
     ) : wallet.accountId ? (
       <>
         <Mono className="text-sm">{wallet.accountId}</Mono>
@@ -142,11 +142,11 @@ export function App({ config }: { config: SiteConfig }) {
       <header className="pointer-events-none sticky top-0 z-40 px-4 pt-6">
         <nav
           aria-label="Pages"
-          className="pointer-events-auto mx-auto flex w-max max-w-full items-center gap-2 rounded-full border border-line bg-paper/80 py-2 pr-2 pl-4 text-sm shadow-lg shadow-stone-900/5 backdrop-blur-xl sm:gap-4"
+          className="pointer-events-auto mx-auto flex w-max max-w-full items-center gap-2 rounded-full border border-line bg-paper/80 py-2 pr-2 pl-4 text-sm shadow-lg shadow-zinc-900/5 backdrop-blur-xl sm:gap-4"
         >
-          <a href="./" aria-label="Spact home" aria-current={onHome ? "page" : undefined} className="mr-2 flex items-center">
-            <span className="sm:hidden">
-              <GateMark />
+          <a href="./" aria-label="SpactVault home" aria-current={onHome ? "page" : undefined} className="mr-2 flex items-center">
+            <span className="flex sm:hidden">
+              <MarkTile />
             </span>
             <span className="hidden sm:inline-flex">
               <Logo />
@@ -164,7 +164,7 @@ export function App({ config }: { config: SiteConfig }) {
               target="_blank"
               rel="noreferrer noopener"
               aria-label="GitHub repository"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-stone-600 transition-colors duration-300 ease-fluid hover:bg-stone-100 hover:text-ink"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-600 transition-colors duration-300 ease-fluid hover:bg-zinc-100 hover:text-ink"
             >
               <GithubLogo size={18} aria-hidden="true" />
             </a>
@@ -186,7 +186,7 @@ export function App({ config }: { config: SiteConfig }) {
           <div className={`mx-auto px-6 pt-8 ${requestId ? "max-w-2xl" : "max-w-5xl"}`}>
             {onLegal ? null : (
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500" data-testid="environment">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500" data-testid="environment">
                   {config.vaultId === null ? (
                     <Badge tone="neutral">No vault connected</Badge>
                   ) : (

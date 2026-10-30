@@ -43,7 +43,7 @@ async function main() {
     save(state);
     await telegram.sendMessage(
       chatId,
-      `Linked. This chat gets Spact alerts for vault ${config.vaultId} on ${config.network}. The bot can only notify; approvals happen in your wallet.`,
+      `Linked. This chat gets SpactVault alerts for vault ${config.vaultId} on ${config.network}. The bot can only notify; approvals happen in your wallet.`,
     );
     log({ event: "linked", chat: `…${chatId.slice(-3)}` });
   }

@@ -6,7 +6,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="border-t border-line pt-8">
       <h2 className="text-xl font-semibold">{title}</h2>
-      <ul className="mt-4 space-y-3 text-base leading-relaxed text-stone-700">{children}</ul>
+      <ul className="mt-4 space-y-3 text-base leading-relaxed text-zinc-700">{children}</ul>
     </section>
   );
 }
@@ -18,7 +18,7 @@ export function Legal({ config }: { config: SiteConfig }) {
     <article className="max-w-2xl space-y-8 pb-12" data-testid="legal">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Privacy and terms</h1>
-        <p className="mt-3 text-base text-stone-600">What this site does with your data, and what it does not promise.</p>
+        <p className="mt-3 text-base text-zinc-600">What this site does with your data, and what it does not promise.</p>
       </div>
       <Section title="Privacy">
         <li>This site sets no cookies and runs no analytics or tracking scripts.</li>
@@ -30,10 +30,10 @@ export function Legal({ config }: { config: SiteConfig }) {
           When you connect a wallet, the wallet selector loads wallet code from third parties, such as raw.githubusercontent.com and the
           wallet&apos;s own servers, and may remember the connection in your browser&apos;s storage.
         </li>
-        <li>Spact never sees your keys. Your wallet signs; this page only hands it a transaction to show you.</li>
+        <li>SpactVault never sees your keys. Your wallet signs; this page only hands it a transaction to show you.</li>
       </Section>
       <Section title="Terms">
-        <li>Spact is an unaudited hackathon prototype, provided as is, without warranty of any kind.</li>
+        <li>SpactVault is an unaudited hackathon prototype, provided as is, without warranty of any kind.</li>
         <li>
           {config.network === "mainnet"
             ? "This deployment is on NEAR mainnet, where tokens have real value. Use only small amounts you can afford to lose."

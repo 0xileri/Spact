@@ -29,7 +29,7 @@ function PrimaryLink({ href, children }: { href: string; children: ReactNode }) 
   return (
     <a
       href={href}
-      className="group inline-flex items-center gap-2 rounded-lg bg-ink px-3 py-2 text-base font-semibold text-paper transition duration-300 ease-fluid hover:bg-stone-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink active:translate-y-px"
+      className="group inline-flex items-center gap-2 rounded-lg bg-brand px-3 py-2 text-base font-semibold text-white transition duration-300 ease-fluid hover:bg-brand-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:translate-y-px"
     >
       {children}
       <ArrowRight size={16} weight="bold" aria-hidden="true" className="transition-transform duration-300 ease-fluid group-hover:translate-x-1" />
@@ -42,7 +42,7 @@ function TextLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <a
       href={href}
-      className="inline-flex items-center gap-1 text-base font-semibold text-ink underline decoration-stone-300 underline-offset-4 transition-colors duration-300 ease-fluid hover:decoration-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+      className="inline-flex items-center gap-1 text-base font-semibold text-ink underline decoration-zinc-300 underline-offset-4 transition-colors duration-300 ease-fluid hover:decoration-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
     >
       {children}
     </a>
@@ -52,11 +52,11 @@ function TextLink({ href, children }: { href: string; children: ReactNode }) {
 function SectionTitle({ label, title, id, children }: { label: string; title: string; id: string; children?: ReactNode }) {
   return (
     <div className="max-w-2xl">
-      <p className="font-mono text-xs text-stone-500">{label}</p>
+      <p className="font-mono text-xs text-zinc-500">{label}</p>
       <h2 id={id} className="mt-3 text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
         {title}
       </h2>
-      {children ? <div className="mt-4 text-base leading-relaxed text-stone-600">{children}</div> : null}
+      {children ? <div className="mt-4 text-base leading-relaxed text-zinc-600">{children}</div> : null}
     </div>
   );
 }
@@ -91,7 +91,7 @@ function Outcomes({ rules, caption, example }: { rules: OutcomeRules; caption: s
                   <p className="mt-6 text-xl font-semibold text-ink" data-testid={`rule-${o.signal}`}>
                     {rules[o.key]}
                   </p>
-                  <p className="mt-2 text-sm text-stone-500">{o.after}</p>
+                  <p className="mt-2 text-sm text-zinc-500">{o.after}</p>
                 </div>
               </Reveal>
             </li>
@@ -105,7 +105,7 @@ function Outcomes({ rules, caption, example }: { rules: OutcomeRules; caption: s
 function Stat({ label, children, testId }: { label: string; children: ReactNode; testId: string }) {
   return (
     <div className="h-full rounded-2xl border border-line bg-surface p-6">
-      <p className="text-xs font-medium text-stone-500">{label}</p>
+      <p className="text-xs font-medium text-zinc-500">{label}</p>
       <div className="mt-2 text-3xl font-semibold tracking-tight" data-testid={testId}>
         {children}
       </div>
@@ -116,8 +116,8 @@ function Stat({ label, children, testId }: { label: string; children: ReactNode;
 function StatSkeleton() {
   return (
     <div className="rounded-2xl border border-line bg-surface p-6" aria-hidden="true">
-      <div className="h-3 w-20 animate-pulse rounded bg-stone-100" />
-      <div className="mt-4 h-8 w-28 animate-pulse rounded bg-stone-100" />
+      <div className="h-3 w-20 animate-pulse rounded bg-zinc-100" />
+      <div className="mt-4 h-8 w-28 animate-pulse rounded bg-zinc-100" />
     </div>
   );
 }
@@ -154,8 +154,8 @@ function LiveSection({ config, live }: { config: AppConfig; live: Live }) {
         budget && token ? (
           <>
             {formatAmount(budget.executed, token.metadata)}
-            <span className="ml-2 text-sm font-normal tracking-normal text-stone-500">of {formatAmount(budget.daily_limit, token.metadata)}</span>
-            <span className="mt-3 block h-1 overflow-hidden rounded-full bg-stone-100" aria-hidden="true">
+            <span className="ml-2 text-sm font-normal tracking-normal text-zinc-500">of {formatAmount(budget.daily_limit, token.metadata)}</span>
+            <span className="mt-3 block h-1 overflow-hidden rounded-full bg-zinc-100" aria-hidden="true">
               <span className="block h-full rounded-full bg-paid" style={{ width: `${usedPercent(budget)}%` }} />
             </span>
           </>
@@ -191,7 +191,7 @@ function LiveSection({ config, live }: { config: AppConfig; live: Live }) {
         </Reveal>
         <div className="mt-12">{body}</div>
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-          <p className="max-w-xl text-xs text-stone-500">
+          <p className="max-w-xl text-xs text-zinc-500">
             Blocked requests are refused before anything is stored, so they never show up here.
             {vaultLink ? (
               <>
@@ -229,7 +229,7 @@ function HeroProof({ lab }: { lab: LoadResult | null }) {
   const view = lab?.kind === "ok" ? lab.view : null;
   if (!view) return null;
   return (
-    <p className="mt-10 flex items-center gap-2 border-t border-line pt-6 text-sm text-stone-600" data-testid="hero-proof">
+    <p className="mt-10 flex items-center gap-2 border-t border-line pt-6 text-sm text-zinc-600" data-testid="hero-proof">
       <SignalDot signal="paid" />
       <span>
         <span className="font-semibold text-ink">
@@ -241,7 +241,7 @@ function HeroProof({ lab }: { lab: LoadResult | null }) {
   );
 }
 
-/** The public front page: what Spact is, how it decides, and what the configured vault is doing. */
+/** The public front page: what SpactVault is, how it decides, and what the configured vault is doing. */
 export function Landing({ config }: { config: SiteConfig }) {
   const vaultConfig = config.vaultId === null ? null : config;
   const [live, setLive] = useState<Live>(vaultConfig ? { kind: "loading" } : { kind: "none" });
@@ -280,16 +280,16 @@ export function Landing({ config }: { config: SiteConfig }) {
       <section>
         <Container className="grid grid-cols-1 items-center gap-12 pt-16 pb-12 sm:pt-24 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-stone-600">
+            <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-zinc-600">
               <SignalDot signal={vaultConfig ? "paid" : "waits"} className="h-2 w-2" />
               {vaultConfig ? `Live on ${NETWORK_NAME[vaultConfig.network]}` : "Unaudited hackathon prototype"}
             </p>
-            <h1 className="mt-6 max-w-2xl bg-linear-to-r from-ink to-stone-500 bg-clip-text pb-1 text-5xl font-bold tracking-tight text-transparent sm:text-6xl lg:text-5xl">
+            <h1 className="mt-6 max-w-2xl bg-linear-to-r from-ink to-brand bg-clip-text pb-1 text-5xl font-bold tracking-tight text-transparent sm:text-6xl lg:text-5xl">
               Autonomous spending.
               <br />
               Human rules.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-stone-600">
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-600">
               A spending firewall for AI agents on NEAR. Your agent asks a vault contract to pay, and the contract applies your rules on chain.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-6">

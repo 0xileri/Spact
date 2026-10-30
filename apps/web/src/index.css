@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 /*
- * Spact design values: the brand version of the redesign skill's "Design values" (ADR-026).
+ * SpactVault design values (DECISIONS ADR-026, colors ADR-027).
  * - One typeface, Space Grotesk, plus Geist Mono for code, account names and hashes.
- * - Ink on warm paper; warm "stone" grays only.
- * - Green, amber and rose appear only as the paid / waits / blocked signals.
+ * - Violet ink and the brand violet on white; neutral "zinc" grays only.
+ * - Green, amber and rose appear only as the paid / waits / blocked signals, never as brand color.
  * - No background gradients; depth comes from a faint grain, hairlines and tinted shadows.
  * - One motion curve for everything that moves.
  */
@@ -12,10 +12,12 @@
   --font-sans: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --color-ink: #0b0f14;
-  --color-paper: #f7f6f2;
-  --color-surface: #fffefb;
-  --color-line: #e7e4dc;
+  --color-ink: #140f2b;
+  --color-brand: #6a4cff;
+  --color-brand-strong: #5434f0;
+  --color-paper: #f7f7fb;
+  --color-surface: #ffffff;
+  --color-line: #e8e6f0;
   --color-paid: #10b981;
   --color-waits: #f59e0b;
   --color-blocked: #f43f5e;

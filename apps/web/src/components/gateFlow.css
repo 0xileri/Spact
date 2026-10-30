@@ -10,7 +10,7 @@
 .gate {
   --gate-cycle: 10s;
   --gate-io: cubic-bezier(0.65, 0, 0.35, 1);
-  --gate-idle: var(--color-stone-300, #d6d3d1);
+  --gate-idle: var(--color-zinc-300, #d4d4d8);
 }
 
 .gate-chip-a,
@@ -36,9 +36,11 @@
 .gate-light {
   fill: var(--color-waits);
 }
-.gate-post,
-.gate-btn {
+.gate-post {
   fill: var(--color-ink);
+}
+.gate-btn {
+  fill: var(--color-brand);
 }
 .gate-track {
   stroke-dasharray: 4 8;
@@ -212,12 +214,12 @@
   68%, 100% { opacity: 0; }
 }
 @keyframes gate-btn {
-  0%, 56% { fill: var(--color-ink); transform: scale(1); }
-  57% { fill: var(--color-ink); transform: scale(0.94); }
+  0%, 56% { fill: var(--color-brand); transform: scale(1); }
+  57% { fill: var(--color-brand); transform: scale(0.94); }
   58% { fill: var(--color-paid); }
   58.5% { transform: scale(1); }
   66% { fill: var(--color-paid); }
-  68%, 100% { fill: var(--color-ink); transform: scale(1); }
+  68%, 100% { fill: var(--color-brand); transform: scale(1); }
 }
 @keyframes gate-btn-label {
   0%, 57.5% { opacity: 1; }

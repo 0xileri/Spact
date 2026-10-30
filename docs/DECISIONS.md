@@ -168,6 +168,18 @@ The hero's visual is `GateFlow`, an SVG animation built the way `design-to-motio
 - **On a phone.** The graphic drops its legend and crops its viewBox so its labels stay readable, and the caption under it states the rule instead.
 - **The rule cards.** Each card acts out its own outcome on a short track (`OutcomeMotion`): paid passes straight through, waits is tapped Approve, blocked meets a closed gate. The loops run 3.2, 5.2 and 3.8 seconds, so the cards never move in step. They follow the same rules: CSS only, paused off screen, a still frame with reduced motion.
 
+## ADR-027: The product is named SpactVault, with an S and V monogram in violet (2026-10-30)
+
+The owner renamed the product SpactVault, after the `spactvault` domain they want, and asked for a brand built on it: a logo on white with the S and V intertwined, plus colors.
+
+- **Name.** SpactVault is one word, with capital S and V, so the mark's two letters are the name's two capitals. "Spact" stays as the short form in prose. Code identifiers do not change: package names (`@spact/*`), the MCP server id `spact`, account names and the repository. The user-facing text changes: the site, its title and share card, the 404 page, the Telegram link message and the MCP tool titles.
+- **Mark.** The S and V are Space Grotesk Bold outlines, the site's own typeface. The S is woven through the V, passing under its left arm and over its right. The gaps of the weave are cut in white, so the mark always sits on a white tile, which is the logo the owner asked for. Two concepts were drawn (a woven S, and an S knocked out of a solid V), and the owner chose the woven one.
+- **Where the geometry lives.** It lives in `apps/web/src/brandMark.ts`. The React mark, `favicon.svg`, the rendered PNGs (`dev/render-brand.ts`) and `404.html` all come from it.
+- **Colors.** The owner chose violet over cobalt and emerald: violet ink `#140f2b` and violet `#6a4cff`. The page background is a cool near-white `#f7f7fb` with white cards, and the grays are neutral zinc in place of warm stone. Violet is the color of the primary link, focus rings and the wallet's Approve button in the animations. White on violet is 5.1:1, which passes AA.
+- **Status colors.** Paid, waits and blocked keep their emerald, amber and rose. The brand never uses them as decoration, and the approval page's "Approve and pay" button stays emerald because it pays.
+- **Domain.** The domain is not bought yet. The site stays on `spact.up.railway.app` and GitHub Pages until it is.
+- **Repository.** The owner renamed the repository to `0xileri/SpactVault`. GitHub Pages now serves `https://0xileri.github.io/SpactVault/`, and the old `/Spact/` path no longer works. So the `Dockerfile` defaults now point there: the Security Lab report URL that the Railway site reads, and the repository link. The README and the MCP setup example use the new address too. Approval links from an MCP server configured with the old `SPACT_APPROVAL_URL` stop working until it is set to the new URL.
+
 ## Open questions (from AGENTS.md section 17)
 
 - [x] Official `HACKATHON.md`: added at the repo root (owner copy, 2026-10-23).
@@ -184,4 +196,5 @@ The hero's visual is `GateFlow`, an SVG animation built the way `design-to-motio
 - [ ] A trusted RPC endpoint for testnet/mainnet. The site uses `https://test.rpc.fastnear.com` on testnet for now.
 - [ ] Reproducible vault build, so anyone can match the deployed code hash to the source (STATUS: "Build reproducibility").
 - [ ] License (MIT or Apache-2.0).
+- [ ] Custom domain: `spactvault` is chosen (ADR-027) but not bought; buying it is the owner's step.
 - [ ] NEAR payout account and project description for the form (owner-provided).

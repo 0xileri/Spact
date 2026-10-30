@@ -135,9 +135,9 @@ export function createSpactServer({ vault, config }: ServerDeps): McpServer {
   server.registerTool(
     "request_payment",
     {
-      title: "Request a Spact payment",
+      title: "Request a SpactVault payment",
       description:
-        `Ask the Spact vault ${config.vaultId} on NEAR ${config.network} to pay an allowlisted recipient. ` +
+        `Ask the SpactVault contract ${config.vaultId} on NEAR ${config.network} to pay an allowlisted recipient. ` +
         "The vault's on-chain policy decides: small payments are paid at once, larger ones wait for the owner to approve them in their wallet, and anything outside the policy is blocked. " +
         "This tool cannot change the policy, approve payments, or move funds any other way.",
       inputSchema: requestPaymentInput,
@@ -206,9 +206,9 @@ export function createSpactServer({ vault, config }: ServerDeps): McpServer {
   server.registerTool(
     "get_payment_status",
     {
-      title: "Get a Spact payment's status",
+      title: "Get a SpactVault payment's status",
       description:
-        `Read the current on-chain status of a payment request in the Spact vault ${config.vaultId}. ` +
+        `Read the current on-chain status of a payment request in the SpactVault contract ${config.vaultId}. ` +
         "Blocked requests are not stored, so they read as NOT_FOUND.",
       inputSchema: z.object({ request_id: requestId.describe("The request_id you used with request_payment") }),
       outputSchema: getPaymentStatusOutput,

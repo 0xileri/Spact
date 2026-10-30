@@ -44,7 +44,7 @@ test("the published site works under its subpath with no vault: the Security Lab
   await expect(page).toHaveURL(`${PAGES}?page=security`);
   await expect(page.locator('[data-case="T01"]')).toHaveAttribute("data-status", "PASSED_ON_CHAIN");
 
-  await page.getByRole("link", { name: "Spact home" }).click();
+  await page.getByRole("link", { name: "SpactVault home" }).click();
   await expect(page).toHaveURL(PAGES);
 
   // an approval link loads nothing on a site that has no vault
@@ -63,7 +63,7 @@ test("inside a frame, neither the vault site nor the published site draws anythi
     const frame = page.frameLocator("iframe");
     await expect(frame.getByTestId("framed")).toBeVisible();
     await expect(frame.getByRole("button")).toHaveCount(0);
-    await expect(frame.getByRole("link")).toHaveText(["Open Spact in a new tab"]);
+    await expect(frame.getByRole("link")).toHaveText(["Open SpactVault in a new tab"]);
   }
 });
 
@@ -84,5 +84,5 @@ test("the published site has a skip link, a privacy and terms page, and a brande
   const missing = await page.goto(`${PAGES}no/such/page`);
   expect(missing?.status()).toBe(404);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("This page does not exist.");
-  await expect(page.getByRole("link", { name: "Back to Spact" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to SpactVault" })).toBeVisible();
 });
