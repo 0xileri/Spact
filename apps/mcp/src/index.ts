@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Spact MCP server (stdio). Gives an AI agent two tools, request_payment and
+ * SpactVault MCP server (stdio). Gives an AI agent two tools, request_payment and
  * get_payment_status, backed by the agent's function-call key. It refuses to start with a
  * full-access key, a key for another contract or extra methods, or a vault on another network.
  *

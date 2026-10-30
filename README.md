@@ -10,7 +10,7 @@ SpactVault (Spact for short) is a payment-policy firewall for AI agents on NEAR.
 
 ## Why not just give the agent a wallet
 
-A wallet key can spend everything. A NEAR function-call key restricts which methods can be called, but its `allowance` caps gas, not dollars. Spact puts the rules in a contract the agent cannot change:
+A wallet key can spend everything. A NEAR function-call key restricts which methods can be called, but its `allowance` caps gas, not dollars. SpactVault puts the rules in a contract the agent cannot change:
 
 - **on-chain budgets:** per-payment auto limit, hard cap, and a UTC-day budget that counts in-flight transfers, so parallel requests cannot overspend
 - **approval bound to exact terms:** the owner approves a hash of the stored request (recipient, amount, token, vault, network, policy version), signed with a full-access key. A backend or bot that shows different terms produces a hash the vault rejects.
@@ -25,7 +25,7 @@ A wallet key can spend everything. A NEAR function-call key restricts which meth
 | Real-chain tests on a NEAR sandbox node (`contracts/integration-tests`) | 10 passing: auto payment, approval flow, parallel split, failed transfer, private callback, agent bypass attempts, init front-run, pause/recovery, the agent's restricted key |
 | Shared TS package: request hash, exact amounts, contract JSON schemas, reason codes, RPC client (`packages/shared`) | built, 19 tests; hash matches Rust and an independent Python vector |
 | Landing page, owner dashboard and approval page (`apps/web`) | built, 30 unit tests and 16 browser tests on a local chain, including tampered RPC answers and framing |
-| Hosted site (GitHub Pages, from main) | live at https://0xileri.github.io/SpactVault/, reading the testnet vault |
+| Hosted site | live at https://spactvault.xyz (Railway) and https://0xileri.github.io/SpactVault/ (GitHub Pages), both from main and reading the testnet vault |
 | Security Lab report and page (`packages/security-lab`, `?page=security`) | built: 13 of 18 attack cases pass on a local chain, 3 in unit tests only, 2 wait for P1 |
 | Agent MCP server for Claude Code / Codex (`apps/mcp`) | built, 24 unit tests and 11 tests over stdio on a local chain; run on testnet from Claude Code (paid, held for approval, blocked) |
 | Local demo with no wallet or testnet needed (`scripts/dev-sandbox.sh`) | works |
@@ -54,7 +54,7 @@ This runs every suite, then builds `apps/web/public/security-report.json` from t
 
 | | |
 |---|---|
-| Site (overview, approvals, Security Lab) | https://0xileri.github.io/SpactVault/ |
+| Site (overview, approvals, Security Lab) | https://spactvault.xyz (also https://0xileri.github.io/SpactVault/) |
 | Vault | [`vault.spact-ileri2.testnet`](https://testnet.nearblocks.io/address/vault.spact-ileri2.testnet), code hash `bb664f2a1b19734e5bbb8f01372d737fcc724ae008be284603c7dd4dc191c81c` |
 | Owner (approves in Meteor Wallet) | [`0xileri.testnet`](https://testnet.nearblocks.io/address/0xileri.testnet) |
 | Agent (function-call key for two vault methods only) | [`agent.spact-ileri2.testnet`](https://testnet.nearblocks.io/address/agent.spact-ileri2.testnet) |
@@ -74,7 +74,7 @@ The root `Dockerfile` builds the site and serves it with Caddy, which sends secu
 
 1. At https://railway.com create a project from the GitHub repo. If Railway offers one service per package, keep a single service at the repository root. Its build log says `Using detected Dockerfile!`.
 2. Under the service's **Variables**, set `VITE_VAULT_ID=vault.spact-ileri2.testnet`. The other settings have defaults in the `Dockerfile`: testnet, `https://test.rpc.fastnear.com`, the Security Lab report from the GitHub Pages site, and this repository's link.
-3. Under **Settings → Networking**, generate a domain. The share card uses it automatically (`RAILWAY_PUBLIC_DOMAIN`).
+3. Under **Settings → Networking**, generate a domain or add your own; this project uses `spactvault.xyz`. The share card uses the generated domain automatically (`RAILWAY_PUBLIC_DOMAIN`). For a custom domain, also set `VITE_SITE_URL=https://<your domain>`.
 4. Under **Settings**, turn on **Wait for CI**, so Railway deploys a commit only after GitHub Actions passed on it.
 5. When it is up, check it: `scripts/check-web-image.sh https://<domain> https://<domain>`.
 

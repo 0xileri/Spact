@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Watches a Spact vault and sends the owner a Telegram message when a payment needs approval",
+  "description": "Watches a SpactVault contract and sends the owner a Telegram message when a payment needs approval",
   "bin": {
     "spact-notifier": "./dist/index.js"
   },

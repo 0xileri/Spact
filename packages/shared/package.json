@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Types, reason codes, amount helpers and the request digest shared by Spact clients",
+  "description": "Types, reason codes, amount helpers and the request digest shared by SpactVault clients",
   "exports": {
     ".": {
       "spact-source": "./src/index.ts",

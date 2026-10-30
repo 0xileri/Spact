@@ -1,6 +1,6 @@
-# Spact MCP server
+# SpactVault MCP server
 
-A local stdio [MCP](https://modelcontextprotocol.io) server that lets an AI agent (Claude Code, Codex, any MCP host) ask a Spact vault to pay someone. The vault's on-chain policy decides what happens. The agent's key is a NEAR function-call key that can call only the vault's `request_direct_payment` and `execute_request`.
+A local stdio [MCP](https://modelcontextprotocol.io) server that lets an AI agent (Claude Code, Codex, any MCP host) ask a SpactVault contract to pay someone. The vault's on-chain policy decides what happens. The agent's key is a NEAR function-call key that can call only the vault's `request_direct_payment` and `execute_request`.
 
 ## Tools
 
@@ -55,7 +55,7 @@ claude mcp add spact \
   -e SPACT_VAULT_ID=vault.<name>.testnet \
   -e SPACT_AGENT_ID=agent.<name>.testnet \
   -e SPACT_AGENT_KEY_FILE=$HOME/.near-credentials/spact/agent.<name>.testnet.json \
-  -e SPACT_APPROVAL_URL=https://0xileri.github.io/SpactVault/ \
+  -e SPACT_APPROVAL_URL=https://spactvault.xyz/ \
   -- "$(command -v node)" "$PWD/apps/mcp/dist/index.js"
 
 # Codex
@@ -65,7 +65,7 @@ codex mcp add spact \
   --env SPACT_VAULT_ID=vault.<name>.testnet \
   --env SPACT_AGENT_ID=agent.<name>.testnet \
   --env SPACT_AGENT_KEY_FILE=$HOME/.near-credentials/spact/agent.<name>.testnet.json \
-  --env SPACT_APPROVAL_URL=https://0xileri.github.io/SpactVault/ \
+  --env SPACT_APPROVAL_URL=https://spactvault.xyz/ \
   -- "$(command -v node)" "$PWD/apps/mcp/dist/index.js"
 ```
 

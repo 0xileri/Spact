@@ -177,7 +177,7 @@ The owner renamed the product SpactVault, after the `spactvault` domain they wan
 - **Where the geometry lives.** It lives in `apps/web/src/brandMark.ts`. The React mark, `favicon.svg`, the rendered PNGs (`dev/render-brand.ts`) and `404.html` all come from it.
 - **Colors.** The owner chose violet over cobalt and emerald: violet ink `#140f2b` and violet `#6a4cff`. The page background is a cool near-white `#f7f7fb` with white cards, and the grays are neutral zinc in place of warm stone. Violet is the color of the primary link, focus rings and the wallet's Approve button in the animations. White on violet is 5.1:1, which passes AA.
 - **Status colors.** Paid, waits and blocked keep their emerald, amber and rose. The brand never uses them as decoration, and the approval page's "Approve and pay" button stays emerald because it pays.
-- **Domain.** The domain is not bought yet. The site stays on `spact.up.railway.app` and GitHub Pages until it is.
+- **Domain.** The owner bought `spactvault.xyz` and attached it to the Railway service, which verified it and issued its certificate. It is the site's primary address, and the Railway variable `VITE_SITE_URL=https://spactvault.xyz` points the share card at it. `spact.up.railway.app` and GitHub Pages keep serving the same build.
 - **Repository.** The owner renamed the repository to `0xileri/SpactVault`. GitHub Pages now serves `https://0xileri.github.io/SpactVault/`, and the old `/Spact/` path no longer works. So the `Dockerfile` defaults now point there: the Security Lab report URL that the Railway site reads, and the repository link. The README and the MCP setup example use the new address too. Approval links from an MCP server configured with the old `SPACT_APPROVAL_URL` stop working until it is set to the new URL.
 
 ## Open questions (from AGENTS.md section 17)
@@ -196,5 +196,5 @@ The owner renamed the product SpactVault, after the `spactvault` domain they wan
 - [ ] A trusted RPC endpoint for testnet/mainnet. The site uses `https://test.rpc.fastnear.com` on testnet for now.
 - [ ] Reproducible vault build, so anyone can match the deployed code hash to the source (STATUS: "Build reproducibility").
 - [ ] License (MIT or Apache-2.0).
-- [ ] Custom domain: `spactvault` is chosen (ADR-027) but not bought; buying it is the owner's step.
+- [x] Custom domain: `spactvault.xyz`, on Railway (ADR-027).
 - [ ] NEAR payout account and project description for the form (owner-provided).

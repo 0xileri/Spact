@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Deploys Spact to NEAR testnet with near-cli-rs:
+# Deploys SpactVault to NEAR testnet with near-cli-rs:
 #   tusd.<parent>   test NEP-141 token (mock-ft, 6 decimals; no real value)
-#   vault.<parent>  Spact vault, owned by <owner>, deployed and initialized in one transaction
+#   vault.<parent>  SpactVault contract, owned by <owner>, deployed and initialized in one transaction
 #   agent.<parent>  the agent account. It gets a function-call key limited to request_direct_payment and
 #                   execute_request on the vault, saved to its own file for the agent runtime. The account's
 #                   full-access key stays in your keychain as the operator key; never give it to the agent.

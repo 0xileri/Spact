@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Local stdio MCP server that lets an AI agent request Spact payments with its restricted key",
+  "description": "Local stdio MCP server that lets an AI agent request SpactVault payments with its restricted key",
   "bin": {
     "spact-mcp": "./dist/index.js"
   },
