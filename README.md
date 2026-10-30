@@ -25,7 +25,7 @@ A wallet key can spend everything. A NEAR function-call key restricts which meth
 | Real-chain tests on a NEAR sandbox node (`contracts/integration-tests`) | 10 passing: auto payment, approval flow, parallel split, failed transfer, private callback, agent bypass attempts, init front-run, pause/recovery, the agent's restricted key |
 | Shared TS package: request hash, exact amounts, contract JSON schemas, reason codes, RPC client (`packages/shared`) | built, 19 tests; hash matches Rust and an independent Python vector |
 | Landing page, owner dashboard and approval page (`apps/web`) | built, 30 unit tests and 16 browser tests on a local chain, including tampered RPC answers and framing |
-| Hosted site (GitHub Pages, from main) | live at https://0xileri.github.io/Spact/, reading the testnet vault |
+| Hosted site (GitHub Pages, from main) | live at https://0xileri.github.io/SpactVault/, reading the testnet vault |
 | Security Lab report and page (`packages/security-lab`, `?page=security`) | built: 13 of 18 attack cases pass on a local chain, 3 in unit tests only, 2 wait for P1 |
 | Agent MCP server for Claude Code / Codex (`apps/mcp`) | built, 24 unit tests and 11 tests over stdio on a local chain; run on testnet from Claude Code (paid, held for approval, blocked) |
 | Local demo with no wallet or testnet needed (`scripts/dev-sandbox.sh`) | works |
@@ -54,7 +54,7 @@ This runs every suite, then builds `apps/web/public/security-report.json` from t
 
 | | |
 |---|---|
-| Site (overview, approvals, Security Lab) | https://0xileri.github.io/Spact/ |
+| Site (overview, approvals, Security Lab) | https://0xileri.github.io/SpactVault/ |
 | Vault | [`vault.spact-ileri2.testnet`](https://testnet.nearblocks.io/address/vault.spact-ileri2.testnet), code hash `bb664f2a1b19734e5bbb8f01372d737fcc724ae008be284603c7dd4dc191c81c` |
 | Owner (approves in Meteor Wallet) | [`0xileri.testnet`](https://testnet.nearblocks.io/address/0xileri.testnet) |
 | Agent (function-call key for two vault methods only) | [`agent.spact-ileri2.testnet`](https://testnet.nearblocks.io/address/agent.spact-ileri2.testnet) |
@@ -64,7 +64,7 @@ The deploy script made two agent requests: 3 TUSD, paid automatically, and 25 TU
 
 ## Hosted site
 
-After every job passes on main, CI publishes the site to GitHub Pages at https://0xileri.github.io/Spact/, with the Security Lab report from that same run. `/` is a landing page that states the vault's limits as read from its policy and shows live numbers from chain; the owner dashboard is `?page=overview`, the Security Lab `?page=security`, Privacy and terms `?page=legal`, and approval links stay `?request=<id>`. Nobody uploads the report by hand. A build without a vault id is the Security Lab alone; the overview and approval links then say that no vault is connected.
+After every job passes on main, CI publishes the site to GitHub Pages at https://0xileri.github.io/SpactVault/, with the Security Lab report from that same run. `/` is a landing page that states the vault's limits as read from its policy and shows live numbers from chain; the owner dashboard is `?page=overview`, the Security Lab `?page=security`, Privacy and terms `?page=legal`, and approval links stay `?request=<id>`. Nobody uploads the report by hand. A build without a vault id is the Security Lab alone; the overview and approval links then say that no vault is connected.
 
 Repository settings this needs: Settings → Pages → Source **GitHub Actions** (once), and the repository variable `VITE_VAULT_ID` (Settings → Secrets and variables → Actions → Variables) set to the vault id, now `vault.spact-ileri2.testnet`. After changing it, re-run the workflow on main. `VITE_NEAR_NETWORK` defaults to `testnet` and `VITE_NEAR_RPC_URL` to `https://test.rpc.fastnear.com`. These are public values, not secrets.
 

@@ -25,7 +25,7 @@ Last updated 2026-10-25 (UTC). Network mode so far: **local sandbox and NEAR tes
 | 6 | owner wallet approves the exact request; executes once | local tested in a real browser (sandbox, dev signer); **testnet: the owner approved and paid `demo-approve-1` (25 TUSD) with Meteor Wallet on the hosted site**, and the page showed "Confirmed on chain" (owner's report, 2026-10-25). Other wallets untested |
 | 7 | dashboard | local tested in a real browser (sandbox): balance, budget, open requests and activity match the chain; inconsistent budget data from the RPC is flagged; no tx hashes (no indexer) |
 | 8 | Security Lab, at least 6 negative tests | local tested: generated report and page; 13 of 18 cases pass on a local chain, 3 in unit tests only, 2 are P1 (THREAT_MODEL.md); CI builds the report and publishes it with the site to GitHub Pages from main (ADR-023) |
-| 9 | public app, README, video, submission | public repo; site live at https://0xileri.github.io/Spact/ for the testnet vault, with a landing page and brand (ADR-024); README in progress; video and submission not started |
+| 9 | public app, README, video, submission | public repo; site live at https://0xileri.github.io/SpactVault/ for the testnet vault, with a landing page and brand (ADR-024); README in progress; video and submission not started |
 
 ## Testnet deployment (2026-10-25)
 
@@ -84,6 +84,7 @@ SpactVault brand (2026-10-30), DECISIONS ADR-027:
 - **Name:** the product is SpactVault. The site, share card, 404 page, Telegram link message and MCP tool titles say so; code and package names stay `spact`.
 - **Mark:** a Space Grotesk Bold S woven through a V, on a white tile, in violet ink `#140f2b` and violet `#6a4cff`. The favicon, PNG icons and share card are regenerated from `apps/web/src/brandMark.ts`.
 - **Palette:** a cool near-white page, white cards and zinc grays. Violet marks primary links, focus rings and the Approve button in the animations; the paid, waits and blocked colors are unchanged.
+- **Repository renamed** to `0xileri/SpactVault` by the owner. GitHub Pages moved to https://0xileri.github.io/SpactVault/. The `Dockerfile` report and repo defaults, the README and the MCP setup example now point there.
 - **Not done:** the `spactvault` domain is not bought yet.
 
 Redesign skill pass (2026-10-25/26), DECISIONS ADR-026:

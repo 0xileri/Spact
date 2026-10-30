@@ -13,8 +13,8 @@ ARG VITE_NEAR_RPC_URL=https://test.rpc.fastnear.com
 # empty: a site with only the landing page and the Security Lab (ADR-023)
 ARG VITE_VAULT_ID=
 # The CI-built report published with the GitHub Pages site, read by the browser at runtime.
-ARG VITE_SECURITY_REPORT_URL=https://0xileri.github.io/Spact/security-report.json
-ARG VITE_REPO_URL=https://github.com/0xileri/Spact
+ARG VITE_SECURITY_REPORT_URL=https://0xileri.github.io/SpactVault/security-report.json
+ARG VITE_REPO_URL=https://github.com/0xileri/SpactVault
 ARG VITE_SITE_URL=
 ARG VITE_EXPLORER_TX_URL=
 ARG VITE_EXPLORER_ACCOUNT_URL=

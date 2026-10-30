@@ -178,6 +178,7 @@ The owner renamed the product SpactVault, after the `spactvault` domain they wan
 - **Colors.** The owner chose violet over cobalt and emerald: violet ink `#140f2b` and violet `#6a4cff`. The page background is a cool near-white `#f7f7fb` with white cards, and the grays are neutral zinc in place of warm stone. Violet is the color of the primary link, focus rings and the wallet's Approve button in the animations. White on violet is 5.1:1, which passes AA.
 - **Status colors.** Paid, waits and blocked keep their emerald, amber and rose. The brand never uses them as decoration, and the approval page's "Approve and pay" button stays emerald because it pays.
 - **Domain.** The domain is not bought yet. The site stays on `spact.up.railway.app` and GitHub Pages until it is.
+- **Repository.** The owner renamed the repository to `0xileri/SpactVault`. GitHub Pages now serves `https://0xileri.github.io/SpactVault/`, and the old `/Spact/` path no longer works. So the `Dockerfile` defaults now point there: the Security Lab report URL that the Railway site reads, and the repository link. The README and the MCP setup example use the new address too. Approval links from an MCP server configured with the old `SPACT_APPROVAL_URL` stop working until it is set to the new URL.
 
 ## Open questions (from AGENTS.md section 17)
 
